@@ -7,7 +7,7 @@ using System;
 //    do i need it to run a program in c#? or is a codecademy-specific quirk? 
 
 
-namespace myFirstOne
+namespace MyFirstOne
 {
     class anotherFirst
     {
