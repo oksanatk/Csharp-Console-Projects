@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TestProject
+namespace SimpleProject
 {
     class M2L4
     {

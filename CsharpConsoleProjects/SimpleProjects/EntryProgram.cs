@@ -1,6 +1,6 @@
 ﻿
 
-namespace TestProject
+namespace SimpleProject
 {
     class Program
     {

@@ -1,5 +1,5 @@
 ﻿
-namespace TestProject
+namespace SimpleProject
 {
     static class M2L2
     {
