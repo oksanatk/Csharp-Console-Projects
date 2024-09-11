@@ -12,12 +12,12 @@ namespace SimpleProject
         static int totalDogs = 0;
         static int totalUnknownAnimals = 0;
 
-        string petID;
-        string species;
-        int age;
-        string nickname;
-        string physicalDescription;
-        string personality;
+        private string petID;
+        private string species;
+        private int age;
+        private string nickname;
+        private string physicalDescription;
+        private string personality;
 
         public string PetID { get; private set; }
         public string Species { get; private set; }
@@ -76,6 +76,21 @@ namespace SimpleProject
             Nickname = "Unknown";
             Personality = "Unknown";
             PhysicalDescription= physicalDescription;
+            Age = age;
+        }
+        public Animal(string animalSpecies, int age, string physicalDescription, string personalityDescription, string nickname)
+        {
+            PetID = GeneratePetID(animalSpecies);
+            Species = animalSpecies;
+            if (string.IsNullOrEmpty(nickname)) { Nickname = "Unknown"; }
+            else {  Nickname = nickname; }
+            
+            if (string.IsNullOrEmpty (physicalDescription)) { PhysicalDescription = "Unknown"; }
+            else { PhysicalDescription = physicalDescription; }
+            
+            if (string.IsNullOrEmpty(personalityDescription)) { Personality = "Unknown"; }
+            else { Personality = personalityDescription; }
+            
             Age = age;
         }
 

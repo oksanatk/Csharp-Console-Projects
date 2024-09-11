@@ -10,7 +10,7 @@ namespace SimpleProject
 
             // ie : M2L4.ArrayIterationPractice();
             // M2L2.RunRandomDecisionFlow();
-            M3L5.HeroMonsterBattle();
+            M3L6.ContosoPetClinic();
 
             // cool future idea: have user input module & lesson number
             // then automatically find the class and program associated with it
