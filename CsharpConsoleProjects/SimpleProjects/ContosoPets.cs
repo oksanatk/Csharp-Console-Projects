@@ -77,11 +77,16 @@ namespace SimpleProject
                     case "two":
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
                         //AddNewAnimal();
+                        //     done!
+
                         break;
 
                     case "3":
                     case "three":
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
+                        // animalInstance.VisitTheVet();
+                        //     done!
+                        //         --> methinks, anyway. not currently tested.
                         break;
 
                     case "4":
