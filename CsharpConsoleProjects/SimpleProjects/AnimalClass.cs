@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,8 @@ namespace SimpleProject
 
         // characteristics chosen at random from vars below
         private static Random random = new Random();
+        int randomCharacteristic;
+        string characteristics = "";
 
 
         private string[][] dogPhysicalDescriptions = {
@@ -95,6 +98,26 @@ namespace SimpleProject
                 "housebroken.", "not housebroken."
             }
 
+
+        };
+
+
+        private string[] personalityTypes = new string[]
+        {
+            "loyal", "confident", "affectionate", "playful", "friendly", "anxious", "unconfident and submissive", "independent", "friendly", "nurturing", "the peacekeeper", "guarded / the guardian of the family"
+        };
+
+        private string[] nicknameOptions = new string[]
+        {
+            "Abby" , "Ace", "Adele", "Ajax", "Angel", "Annie", "Apollo","Archie", "Baer", "Baguette", "Bailey", "Balto", "Banjo", "Baxter", "Baya",
+            "Beau", "Cannoli", "Capri", "Carey", "Casper", "Charlie", "Chaser", "Coco", "Dakota", "Darcy", "Demi", "Diego", "Domino", "Dobby", "Dublin",
+            "Echo", "Ellie", "Ember", "Ember", "Espresso", "Fawkes", "Fawkes", "Fitz", "Fleur","Frankie", "Fudge", "Fuji", "Ginger", "Gizmo", "Goofy", "Gracie","Gunner",
+            "Harley", "Harper", "Hazel", "Hershey", "Hilo", "Hiroko", "Hunter", "Indy", "Inu", "Izzy", "Jabba","Jett", "Jax", "Jinx", "Jupiter","Kahana", "Kahlo", "Kai", "Kuchen",
+            "Kyoto", "Lassie", "Lavender","Leo", "Levi", "Lexi", "Lilo" , "Loki", "Lucky", "Lupo", "Maddie","Malia", "Maru", "Marley", "Milo", "Mitsuko", "Mochi", "Monet", "Monet", "Montana", "Mushu",
+            "Nacho", "Nala", "Nemo", "Nero", "Nova", "Oakley", "Obi", "Odie", "Ollie", "Oreo", "Otto", "Paco", "Paris", "Peanut", "Pepper", "Picasso", "Pickles",
+            "Piper", "Pluto", "Polenta", "Posie", "Quincey", "Quinn", "Rambo", "Ranger", "Raven", "Reese", "Remy", "Rhett", "Riley", "Rocco", "Rogue", "Roo", "Ruby",
+            "Sake", "Sawyer", "Scarlett", "Scout", "Sequoia", "Shadow", "Shanti","Sirius", "Sparky", "Stella", "Sushi", "Tahoe", "Taylor", "Tippi", "Toto", "Trapper", "Tupelo",
+            "Weasley", "Whiskey", "Winn-Dixie", "Winnie", "Wiggum", "Xena", "Xavier", "Zelda", "Ziggy", "Yara", "Yoda", "Zeus"
 
         };
 
@@ -180,8 +203,7 @@ namespace SimpleProject
         public Animal VisitTheVet()
         {
             // check if age and physical descriptions already exist
-            int randomCharacteristic;
-            string characteristics = "";
+
             int sizeVariance = 0;
 
             if (age != -1)
@@ -275,6 +297,93 @@ namespace SimpleProject
 
         }
 
+
+
+        public Animal GetToKnow()
+        {
+            // check if nickname and/or personality already exists
+            if (!String.IsNullOrEmpty(this.nickname) || (!String.IsNullOrEmpty(this.personality))) {
+
+                // personality is empty
+                if (!String.IsNullOrEmpty(this.nickname))
+                {
+                    randomCharacteristic = random.Next(0, nicknameOptions.Length);
+                    nickname = nicknameOptions[randomCharacteristic];
+                }
+
+                if (!String.IsNullOrEmpty(this.personality))
+                {
+                    randomCharacteristic = random.Next(0,personalityTypes.Length);
+                    personality = personalityTypes[randomCharacteristic];  
+
+                }
+
+                else
+                {
+                    Console.WriteLine("The nickname and personality are already complete.");
+                }
+
+                return this;
+            }
+            else
+            {
+                Console.WriteLine("The NickName and personality are already complete.");
+                return this;
+            }
+
+            return this;
+        }
+
+
+
+
+        public Animal NewAge(int newAge)
+        {
+            this.age = newAge;
+            return this;
+        }
+
+
+        public Animal EditPersonality(string newPersonality)
+        { 
+            this.Personality = newPersonality;
+            return this;
+        }
+
+        public void DisplayCatsWith(string type, string? data, string[] catsGiven)
+        {
+
+            int ifAge;
+            string newData;
+
+            data = data.Trim().ToLower();
+
+
+            for (int i = 0; i < catsGiven.Length; i++)
+            {
+                switch (type)
+                {
+                    case "age":
+                        if (int.TryParse(data))
+                        {
+                            ifAge = data;
+                            break;
+                        }
+                        break;
+
+                    case "physical description":
+                        if catsGiven[i].species == "cat"{
+
+                        }
+                }
+            }
+        }
+
+
+        public void DisplayDogsWith(string type, string data, string[] dogsGiven)
+        {
+
+        }
 
     }
 }

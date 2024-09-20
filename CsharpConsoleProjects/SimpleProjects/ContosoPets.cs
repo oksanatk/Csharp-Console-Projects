@@ -92,26 +92,34 @@ namespace SimpleProject
                     case "4":
                     case "four":
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
+                        // GetToKnow()
+                        //     -->> done!
+
                         break;
 
                     case "5":
                     case "five":
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
+                            // call animal.EditAge(int newAge) function
                         break;
 
                     case "6":
                     case "six":
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
+                        // call animal.EditPersonality(string newPersonality) function
                         break;
 
                     case "7":
                     case "seven":
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
+                        // call DisplayCatsWith(string type, string data)
+
                         break;
 
                     case "8":
                     case "eight":
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
+                        // call DisplayDogsWith(string type, string cats)
                         break;
 
 
