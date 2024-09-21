@@ -312,14 +312,14 @@
 
                 else
                 {
-                    Console.WriteLine("The nickname and personality are already complete.");
+                    Console.WriteLine($"The nickname and personality for {this.Nickname} (pet id: {this.PetID}) are already complete.");
                 }
 
                 return this;
             }
             else
             {
-                Console.WriteLine("The NickName and personality are already complete.");
+                Console.WriteLine($"The nickname and personality for {this.Nickname} (pet id: {this.PetID})  are already complete.");
                 return this;
             }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,6 +27,9 @@ namespace SimpleProject
 
             string? readResult;
             string userMenuSelection = "";
+            string userPetIdSelection = "";
+            string userSelectedComparison = "";
+            int userSelectedAge;
 
             // initialize the given default data
 
@@ -36,6 +40,8 @@ namespace SimpleProject
             storedAnimals[2] = new Animal("cat", 1, "small white female weighing about 8 pounds. litter box trained.", "friendly", "Puss");
 
             storedAnimals[3] = new Animal("cat");
+
+
 
             do
             {
@@ -70,16 +76,21 @@ namespace SimpleProject
                 {
                     case "1":
                     case "one":
+
                         ListAllPetInfo(storedAnimals);
+
                         break;
 
                     case "2":
                     case "two":
-                        Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
-                        //AddNewAnimal();
-                        //     done!
+
+                        Console.WriteLine("You've selected to add a new animal to our clinc.");
+
+                        storedAnimals = AddNewAnimal(storedAnimals);
 
                         break;
+
+
 
                     case "3":
                     case "three":
@@ -87,7 +98,17 @@ namespace SimpleProject
                         // animalInstance.VisitTheVet();
                         //     done!
                         //         --> methinks, anyway. not currently tested.
+
+                        for (int i = 0; i< storedAnimals.Length; i++)
+                        {
+                            storedAnimals[i] = storedAnimals[i].VisitTheVet();
+                        }
+
+                        Console.WriteLine("All animals have visited the vet. Age and physical descriptions are now complete.");
+
                         break;
+
+
 
                     case "4":
                     case "four":
@@ -95,19 +116,140 @@ namespace SimpleProject
                         // GetToKnow()
                         //     -->> done!
 
+                        for (int i = 0; i < storedAnimals.Length; i++)
+                        {
+                            storedAnimals[i] = storedAnimals[i].GetToKnow();
+                        }
+
+                        Console.WriteLine("We've gotten to know all of our animals!");
+
                         break;
 
                     case "5":
                     case "five":
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
-                            // call animal.EditAge(int newAge) function
+                        // call animal.EditAge(int newAge) function
+
+                        do
+                        {
+                            Console.WriteLine("You've selected to edit an animal's age.");
+                            foreach (Animal a in storedAnimals)
+                            {
+                                Console.WriteLine($"{a.Nickname} is a {a.Species} (pet id: {a.PetID}) with the age of {a.Age}.");
+                            }
+
+                            Console.WriteLine("Please enter the pet id of the whose age you'd like to edit.");
+                            Console.WriteLine("Or type exit to return to the previous menu.");
+
+                            readResult = Console.ReadLine();
+                            if(readResult != null)
+                            {
+                                userPetIdSelection = readResult.Trim().ToLower();
+                            }
+
+                            for (int i = 0; i < storedAnimals.Length; i++)
+                            {
+                                if (storedAnimals[i].PetID == userPetIdSelection)
+                                {
+                                    Console.WriteLine($"{storedAnimals[i].Nickname} (pet id: {storedAnimals[i].PetID}) currently has an age of {storedAnimals[i].Age}");
+
+                                    do
+                                    {
+                                        Console.WriteLine("Please enter tne new age (00) that you'd like to set. Type -1 for an unknown age.");
+                                        Console.WriteLine("Or type exit to return to the previous menu.");
+
+                                        // TODO --> set max age? 
+
+                                        readResult = Console.ReadLine();
+                                        if (readResult != null)
+                                        {
+                                            userMenuSelection = readResult.Trim().ToLower();
+                                        }
+
+                                        if (int.TryParse(userMenuSelection, out userSelectedAge))
+                                        {
+                                            Console.WriteLine($"Now changing {storedAnimals[i].Nickname}'s (pet id: {storedAnimals[i].PetID}) age to {userSelectedAge}.");
+
+                                            storedAnimals[i] = storedAnimals[i].NewAge(userSelectedAge);
+
+
+                                        } else
+                                        {
+                                            Console.WriteLine("Sorry, we couldn't recognize that age.");
+                                        }
+
+                                        i = storedAnimals.Length + 1; //end the for loop
+
+
+
+                                    } while (userMenuSelection != "exit");
+                                }
+                            }
+
+                        } while (userPetIdSelection != "exit");
+                            
+
                         break;
+
+
 
                     case "6":
                     case "six":
+
+
+                        string userSelectedPersonality = "";
+
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
                         // call animal.EditPersonality(string newPersonality) function
+                        do
+                        {
+                            Console.WriteLine("You've selected to edit an animal's personality description.");
+                            
+                            foreach (Animal a in storedAnimals)
+                            {
+                                Console.WriteLine($"Pet ID: ({a.PetID}) is a {a.Species} with the nickname {a.Nickname}. \n{a.Nickname} has the following personality:\n\t'{a.Personality}'.");
+                            }
+
+                            
+                            Console.WriteLine("Please enter a valid Pet ID to continue. Or type exit to return to the previous menu.");
+
+                            readResult = Console.ReadLine();
+                            if (readResult != null)
+                            {
+                                userPetIdSelection = readResult.Trim().ToLower();
+                            }
+
+                            for (int i = 0;i < storedAnimals.Length; i++)
+                            {
+                                if (storedAnimals[i].PetID == userPetIdSelection)
+                                {
+                                    // if valid pet id, continue to ask user for personality input.
+                                    Console.WriteLine($"Okay, cool. We'll edit the personality of the pet ({storedAnimals[i].PetID}) and nickname {storedAnimals[i].Nickname}.");
+                                    Console.WriteLine("Please enter the new personality.");
+                                    Console.WriteLine("Or, type exit to return to the previous menu");
+                                    
+                                    readResult = Console.ReadLine();
+                                    if (readResult != null)
+                                    {
+                                        userSelectedPersonality = readResult.Trim().ToLower();
+                                    }
+
+                                    if (userSelectedPersonality != "exit")
+                                    {
+                                        storedAnimals[i] = storedAnimals[i].EditPersonality(userSelectedPersonality);
+
+                                    }
+
+                                    i = storedAnimals.Length + 1;
+
+                                }
+                            }
+
+                        } while (userPetIdSelection != "exit");
+
                         break;
+
+
 
                     case "7":
                     case "seven":
@@ -121,9 +263,6 @@ namespace SimpleProject
 
                             string[] checkCharacteristicOptions = new string[] { "age", "physical description", "personality", "nickname"};
                             string userCharacteristicSelection = "";
-
-                            string userSelectedComparison = "";
-                            int userSelectedAge;
 
 
                             readResult = Console.ReadLine();
@@ -226,6 +365,113 @@ namespace SimpleProject
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
                         // call DisplayAnimalsWith("dog", user input string type, user input string data, storedAnimals);
 
+                        do
+                        {
+
+                            Console.WriteLine("You've selected to display all dogs with a specific characteristic.");
+                            Console.WriteLine("Please enter one of the following characterstics to search for: 'age', 'physical description', 'personality', or 'nickname' \nOR type exit to return to the main menu.");
+
+                            string[] checkCharacteristicOptions = new string[] { "age", "physical description", "personality", "nickname" };
+                            string userCharacteristicSelection = "";
+
+
+
+
+                            readResult = Console.ReadLine();
+                            if (readResult != null)
+                            {
+                                userCharacteristicSelection = readResult.Trim().ToLower();
+                            }
+
+                            Console.WriteLine($"You've selected the following option: {userMenuSelection}");
+                            Console.WriteLine("Press the Enter key to continue.");
+
+                            Console.ReadLine();
+
+                            // if the user input is a valid characteristic to display, continue to specifics
+                            if (checkCharacteristicOptions.Contains(userCharacteristicSelection))
+                            {
+
+                                do
+                                {
+                                    Console.WriteLine($"Great! Please enter the {userCharacteristicSelection} you want us to look for. \nOR type exit to return to the previous menu.");
+
+                                    readResult = Console.ReadLine();
+                                    if (readResult != null)
+                                    {
+                                        userSelectedComparison = readResult.Trim().ToLower();
+                                    }
+
+                                    if (userCharacteristicSelection == "age")
+                                    {
+
+                                        do
+                                        {
+
+                                            Console.WriteLine("Please enter a valid age number (00) or we will display only dogs with unkonwn ages. \nOR type exit to return to the previous menu.");
+
+                                            if (int.TryParse(userSelectedComparison, out userSelectedAge) && userSelectedAge >= 0)
+                                            {
+
+                                                Console.WriteLine($"You've selected to display all dogs with the age of {userSelectedAge}.");
+                                                Console.WriteLine("Press the Enter key to continue.");
+
+
+                                                Console.ReadLine();
+
+
+                                                Animal.DisplayAnimalsWith("dog", userCharacteristicSelection, userSelectedComparison, storedAnimals);
+                                                break;
+
+                                            }
+                                            else
+                                            {
+                                                // can't parse integer from user-inputted age or age is negative (unknown)
+
+                                                Console.WriteLine($"You've selected to display all dogs with an unknown age. Is this correct (y/n)?");
+
+                                                readResult = Console.ReadLine();
+                                                if (readResult != null)
+                                                {
+                                                    userMenuSelection = readResult.Trim().ToLower();
+                                                }
+
+                                                if (userMenuSelection == "y" || userMenuSelection == "yes")
+                                                {
+                                                    Animal.DisplayAnimalsWith("dog", userCharacteristicSelection, userSelectedComparison, storedAnimals);
+                                                    break;
+
+                                                    // TODO : for Testing: should i put a userMenuSelection = "exit"; here? to escape out of the next loop or couple of loops?
+                                                }
+
+                                            }
+                                        } while (userMenuSelection != "exit");
+                                    }
+                                    else
+                                    {
+                                        // if characteristic is NOT age, then no need to verify input. can directly compare string to string w/o errors
+
+                                        Animal.DisplayAnimalsWith("dog", userCharacteristicSelection, userMenuSelection, storedAnimals);
+                                        break;
+
+                                    }
+
+                                } while (userMenuSelection != "exit");
+
+
+
+                            }
+                            else
+                            {
+                                Console.WriteLine("You didn't seem to select a valid characteristic. Please try again.");
+                                Console.WriteLine("Press the Enter key to continue.");
+
+                                Console.ReadLine();
+                            }
+
+
+                        } while (userMenuSelection != "exit");
+
                         break;
 
 
@@ -254,7 +500,7 @@ namespace SimpleProject
                     Console.WriteLine("ID #: " + pet.PetID);
                     Console.WriteLine("Species: " + pet.Species);
                     Console.WriteLine("Age: " + pet.Age);
-                    Console.WriteLine("Nickname; " + pet.Nickname);
+                    Console.WriteLine("Nickname: " + pet.Nickname);
                     Console.WriteLine("Physical description: " + pet.PhysicalDescription);
                     Console.WriteLine("Personality: " + pet.Personality);
 
@@ -310,7 +556,7 @@ namespace SimpleProject
                 if (userAnimalInput == "cat" || userAnimalInput == "dog")
                 {
                     animalSpecies = userAnimalInput;
-                    Console.WriteLine($"Thanks for telling us that the new animal will be a {userAnimalInput}. Knowing helps us prepare for them.");
+                    Console.WriteLine($"\nThanks for telling us that the new animal will be a {userAnimalInput}. Knowing helps us prepare for them.");
 
                 }else
                 {
