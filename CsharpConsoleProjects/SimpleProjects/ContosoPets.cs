@@ -112,14 +112,120 @@ namespace SimpleProject
                     case "7":
                     case "seven":
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
-                        // call DisplayCatsWith(string type, string data)
+
+                        do
+                        {
+
+                            Console.WriteLine("You've selected to display all cats with a specific characteristic.");
+                            Console.WriteLine("Please enter one of the following characterstics to search for: 'age', 'physical description', 'personality', or 'nickname' \nOR type exit to return to the main menu.");
+
+                            string[] checkCharacteristicOptions = new string[] { "age", "physical description", "personality", "nickname"};
+                            string userCharacteristicSelection = "";
+
+                            string userSelectedComparison = "";
+                            int userSelectedAge;
+
+
+                            readResult = Console.ReadLine();
+                            if (readResult != null)
+                            {
+                                userCharacteristicSelection = readResult.Trim().ToLower();
+                            }
+
+                            Console.WriteLine($"You've selected the following option: {userMenuSelection}");
+                            Console.WriteLine("Press the Enter key to continue.");
+
+                            Console.ReadLine();
+
+                            // if the user input is a valid characteristic to display, continue to specifics
+                            if (checkCharacteristicOptions.Contains(userCharacteristicSelection))
+                            {
+
+                                do
+                                {
+                                    Console.WriteLine($"Great! Please enter the {userCharacteristicSelection} you want us to look for. \nOR type exit to return to the previous menu.");
+
+                                    readResult = Console.ReadLine();
+                                    if (readResult != null)
+                                    {
+                                        userSelectedComparison = readResult.Trim().ToLower();
+                                    }
+
+                                    if (userCharacteristicSelection == "age")
+                                    {
+
+                                        do
+                                        {
+
+                                            Console.WriteLine("Please enter a valid age number (00) or we will display only cats with unkonwn ages. \nOR type exit to return to the previous menu.");
+
+                                            if (int.TryParse(userSelectedComparison, out userSelectedAge) && userSelectedAge >= 0)
+                                            {
+
+                                                Console.WriteLine($"You've selected to display all cats with the age of {userSelectedAge}.");
+                                                Console.WriteLine("Press the Enter key to continue.");
+
+
+                                                Console.ReadLine();
+
+
+                                                Animal.DisplayAnimalsWith("cat", userCharacteristicSelection, userSelectedComparison, storedAnimals);
+                                                break;
+
+                                            }
+                                            else
+                                            {
+                                                // can't parse integer from user-inputted age or age is negative (unknown)
+
+                                                Console.WriteLine($"You've selected to display all cats with an unknown age. Is this correct (y/n)?");
+
+                                                readResult = Console.ReadLine();
+                                                if (readResult != null)
+                                                {
+                                                    userMenuSelection = readResult.Trim().ToLower();
+                                                }
+
+                                                if (userMenuSelection == "y" || userMenuSelection == "yes")
+                                                {
+                                                    Animal.DisplayAnimalsWith("cat", userCharacteristicSelection, userSelectedComparison, storedAnimals);
+                                                    break;
+
+                                                    // TODO : for Testing: should i put a userMenuSelection = "exit"; here? to escape out of the next loop or couple of loops?
+                                                }
+
+                                            }
+                                        } while (userMenuSelection != "exit");
+                                    }else
+                                    {
+                                        // if characteristic is NOT age, then no need to verify input. can directly compare string to string w/o errors
+
+                                        Animal.DisplayAnimalsWith("cat", userCharacteristicSelection, userMenuSelection, storedAnimals);
+                                        break;
+
+                                    }
+
+                                } while (userMenuSelection != "exit");
+
+
+
+                            }else
+                            {
+                                Console.WriteLine("You didn't seem to select a valid characteristic. Please try again.");
+                                Console.WriteLine("Press the Enter key to continue.");
+
+                                Console.ReadLine();
+                            }
+
+
+                        } while (userMenuSelection != "exit");
 
                         break;
 
                     case "8":
                     case "eight":
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
-                        // call DisplayDogsWith(string type, string cats)
+                        // call DisplayAnimalsWith("dog", user input string type, user input string data, storedAnimals);
+
                         break;
 
 
