@@ -101,11 +101,19 @@ namespace SimpleProject
 
                         for (int i = 0; i< storedAnimals.Length; i++)
                         {
-                            storedAnimals[i] = storedAnimals[i].VisitTheVet();
+                            if(storedAnimals[i] != null)
+                            {
+                                storedAnimals[i] = storedAnimals[i].VisitTheVet();
+
+
+                                Console.WriteLine($"new {storedAnimals[i].Nickname}'s physical description is: \n\t{storedAnimals[i].PhysicalDescription}");
+                            }
                         }
 
                         Console.WriteLine("All animals have visited the vet. Age and physical descriptions are now complete.");
 
+
+                        
                         break;
 
 

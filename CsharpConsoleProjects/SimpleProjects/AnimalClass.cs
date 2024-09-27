@@ -1,4 +1,6 @@
-﻿namespace SimpleProject
+﻿using System.Drawing;
+
+namespace SimpleProject
 {
     internal class Animal
     {
@@ -67,7 +69,7 @@
             },
             new string[]
             {
-                "white fur on (socked) feet", "tabby", "hairless", "short-haired", "long-haired"
+                "with white fur on feet (like socks)", "tabby", "hairless", "short-haired", "long-haired"
             },
             new string[]
             {
@@ -198,20 +200,25 @@
 
             int sizeVariance = 0;
 
-            if (age != -1)
+
+            if (this.Age == (-1))
             {
-                if (species == "cat") { this.age = random.Next(0, 21); }
-                else if (species == "dog") { this.age = random.Next(0, 18); }
+                // age -1 means age is unknown. assign below
+                if (this.Species == "cat") { this.Age = random.Next(0, 21);}
+
+                else if (this.Species == "dog") { this.Age = random.Next(0, 18); }
+
             }
 
             // assign descriptions in a seprate method where species is provided?
-            if (!String.IsNullOrEmpty(PhysicalDescription) || this.PhysicalDescription.ToLower() == "unknown")
+            if (String.IsNullOrEmpty(this.PhysicalDescription) || this.PhysicalDescription.ToLower() == "unknown")
             {
-                if (species == "cat")
+                if (this.Species == "cat")
                 {
+
                     for (int i = 0; i < catPhysicalDescriptions.Length; i++)
                     {
-                        if (species == "cat")
+                        if (this.Species == "cat")
                         {
                             randomCharacteristic = random.Next(0, catPhysicalDescriptions[i].Length);
                             characteristics += catPhysicalDescriptions[i][randomCharacteristic] + " ";
@@ -226,13 +233,13 @@
                             // append string 'weighing about xx pounds.' before sterilization
                             if (i == 4)
                             {
-                                randomCharacteristic = (int)(sizeVariance * 6 * (random.NextDouble() * 1.5));
+                                randomCharacteristic = (int)(sizeVariance * 6 * (random.NextDouble() + 1));
                                 characteristics += $"weighing about {randomCharacteristic} pounds." + " ";
 
                             }
                         }
 
-                        if (species == "dog"){
+                        if (this.Species == "dog"){
                             randomCharacteristic = random.Next(0, dogPhysicalDescriptions.Length);
                             characteristics += dogPhysicalDescriptions[i][randomCharacteristic] + " ";
 
@@ -242,7 +249,7 @@
                             }
                             if (i == 4)
                             {
-                                randomCharacteristic = (int)(sizeVariance * 20 * (random.NextDouble() * 1.5));
+                                randomCharacteristic = (int)(sizeVariance * 20 * (random.NextDouble() + 1.5));
                                 characteristics += $"weighing about {randomCharacteristic} pounds." + " ";
 
                             }
@@ -254,30 +261,63 @@
             }else
             {
                 // if some data already exists, then only add sterilization, litter box training, & housebroken data
-                if (species == "cat")
+
+                if (this.Species == "cat")
                 {
-                    characteristics = ". ";
-                    randomCharacteristic = random.Next(0, 2);
-                    characteristics += catPhysicalDescriptions[5][randomCharacteristic];
+                    this.PhysicalDescription = this.PhysicalDescription.Trim();
+                    if (!this.PhysicalDescription.EndsWith("."))
+                     {
+                        characteristics = ". ";
+                     } else
+                    {
+                        characteristics = " ";
+                    }
 
-                    randomCharacteristic = random.Next(0, 2);
-                    characteristics += catPhysicalDescriptions[6][randomCharacteristic];
+                    if (!this.PhysicalDescription.Contains("sterilized"))
+                    {
 
-                    randomCharacteristic = random.Next(0, 2);
-                    characteristics += catPhysicalDescriptions[7][randomCharacteristic];
+                        randomCharacteristic = random.Next(0, 2);
+                        characteristics += catPhysicalDescriptions[5][randomCharacteristic] + " ";
+                    }
+
+                    if (!this.PhysicalDescription.Contains("litter box trained"))
+                    {
+                        randomCharacteristic = random.Next(0, 2);
+                        characteristics += catPhysicalDescriptions[6][randomCharacteristic] + " ";
+                    }
+
+                    if (!this.PhysicalDescription.Contains("housebroken"))
+                    {
+                        randomCharacteristic = random.Next(0, 2);
+                        characteristics += catPhysicalDescriptions[7][randomCharacteristic];
+                    }
+
 
                     this.PhysicalDescription += characteristics; 
                 }
 
-                if (species == "dog")
+                if (this.Species == "dog")
                 {
-                    characteristics = ". ";
+                    // if species is dog and some physical description data already exists, only add sterilized and housebroken data
+                    if (!this.PhysicalDescription.EndsWith("."))
+                    {
+                        characteristics = ". ";
+                    } else
+                    {
+                        characteristics = " ";
+                    }
 
-                    randomCharacteristic = random.Next(0, 2);
-                    characteristics += catPhysicalDescriptions[6][randomCharacteristic];
+                    if (!this.PhysicalDescription.Contains("sterilized"))
+                    {
+                        randomCharacteristic = random.Next(0, 2);
+                        characteristics += dogPhysicalDescriptions[6][randomCharacteristic] + " ";
+                    }
 
-                    randomCharacteristic = random.Next(0, 2);
-                    characteristics += catPhysicalDescriptions[7][randomCharacteristic];
+                    if (!this.PhysicalDescription.Contains("housebroken"))
+                    {
+                        randomCharacteristic = random.Next(0, 2);
+                        characteristics += dogPhysicalDescriptions[7][randomCharacteristic];
+                    }
 
                     this.PhysicalDescription += characteristics;
 
