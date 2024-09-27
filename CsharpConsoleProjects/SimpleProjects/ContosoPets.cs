@@ -27,6 +27,7 @@ namespace SimpleProject
             string userPetIdSelection = "";
             string userPetAgeSelection = "";
             string userSelectedComparison = "";
+            string userCharacteristicSelection = "";
             int userSelectedAge;
 
 
@@ -449,16 +450,16 @@ namespace SimpleProject
 
                     case "7":
                     case "seven":
-                        Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
+
+                        userCharacteristicSelection = "";
 
                         do
                         {
-
+                            Console.Clear();
                             Console.WriteLine("You've selected to display all cats with a specific characteristic.");
                             Console.WriteLine("Please enter one of the following characterstics to search for: \n - age \n - physical description \n - personality \n - nickname \n\nOR type exit to return to the main menu.");
 
                             string[] checkCharacteristicOptions = new string[] { "age", "physical description", "personality", "nickname"};
-                            string userCharacteristicSelection = "";
 
 
                             readResult = Console.ReadLine();
@@ -467,92 +468,137 @@ namespace SimpleProject
                                 userCharacteristicSelection = readResult.Trim().ToLower();
                             }
 
-                            Console.WriteLine($"You've selected the following option: {userMenuSelection}");
-                            Console.WriteLine("Press the Enter key to continue.");
+                            if (userCharacteristicSelection != "exit")
+                            {
+                                Console.WriteLine($"\nYou've selected the following option: {userCharacteristicSelection}");
+                                Console.WriteLine("Press the Enter key to continue.");
 
-                            Console.ReadLine();
+                                Console.ReadLine();
+                            } else
+                            {
+                                Console.WriteLine("\nYou've selected to go back to the main menu.");
+                            }
+
 
                             // if the user input is a valid characteristic to display, continue to specifics
-                            if (checkCharacteristicOptions.Contains(userCharacteristicSelection))
+                            if (userCharacteristicSelection != "exit")
                             {
-
-                                do
+                                if (checkCharacteristicOptions.Contains(userCharacteristicSelection))
                                 {
-                                    Console.WriteLine($"Great! Please enter the {userCharacteristicSelection} you want us to look for. \nOR type exit to return to the previous menu.");
 
-                                    readResult = Console.ReadLine();
-                                    if (readResult != null)
+                                    do
                                     {
-                                        userSelectedComparison = readResult.Trim().ToLower();
-                                    }
+                                        Console.WriteLine($"Great! Please enter the {userCharacteristicSelection} you want us to look for. \nOR type exit to return to the previous menu.");
 
-                                    if (userCharacteristicSelection == "age")
-                                    {
+                                        readResult = Console.ReadLine();
+                                        if (readResult != null)
+                                        {
+                                            userSelectedComparison = readResult.Trim().ToLower();
+                                        }
 
-                                        do
+                                        if (userCharacteristicSelection == "age")
                                         {
 
-                                            Console.WriteLine("Please enter a valid age number (00) or we will display only cats with unkonwn ages. \nOR type exit to return to the previous menu.");
-
-                                            if (int.TryParse(userSelectedComparison, out userSelectedAge) && userSelectedAge >= 0)
+                                            do
                                             {
 
-                                                Console.WriteLine($"You've selected to display all cats with the age of {userSelectedAge}.");
-                                                Console.WriteLine("Press the Enter key to continue.");
+                                                Console.WriteLine("Please enter a valid age number (00) or we will display only cats with unkonwn ages. \nOR type exit to return to the previous menu.");
+
+                                                if (int.TryParse(userSelectedComparison, out userSelectedAge) && userSelectedAge >= 0)
+                                                {
+
+                                                    Console.WriteLine($"You've selected to display all cats with the age of {userSelectedAge}.");
+                                                    Console.WriteLine("Press the Enter key to continue.");
 
 
-                                                Console.ReadLine();
+                                                    Console.ReadLine();
 
 
-                                                Animal.DisplayAnimalsWith("cat", userCharacteristicSelection, userSelectedComparison, storedAnimals);
-                                                break;
+                                                    Animal.DisplayAnimalsWith("cat", userCharacteristicSelection, userSelectedComparison, storedAnimals);
+                                                    break;
 
-                                            }
-                                            else
+                                                }
+                                                else
+                                                {
+                                                    // can't parse integer from user-inputted age or age is negative (unknown)
+
+                                                    Console.WriteLine($"You've selected to display all cats with an unknown age. Is this correct (y/n)?");
+
+                                                    readResult = Console.ReadLine();
+                                                    if (readResult != null)
+                                                    {
+                                                        userMenuSelection = readResult.Trim().ToLower();
+                                                    }
+
+                                                    if (userMenuSelection == "y" || userMenuSelection == "yes")
+                                                    {
+                                                        Animal.DisplayAnimalsWith("cat", userCharacteristicSelection, userSelectedComparison, storedAnimals);
+                                                        break;
+
+                                                        // TODO : for Testing: should i put a userMenuSelection = "exit"; here? to escape out of the next loop or couple of loops?
+                                                    }
+
+                                                }
+                                            } while (userSelectedComparison != "exit");
+
+                                        }else
+                                        {
+                                            // if characteristic is NOT age, then no need to verify input. can directly compare string to string w/o errors
+                                            do
                                             {
-                                                // can't parse integer from user-inputted age or age is negative (unknown)
-
-                                                Console.WriteLine($"You've selected to display all cats with an unknown age. Is this correct (y/n)?");
+                                            /*
+                                                Console.WriteLine($"Great! Please enter the {userCharacteristicSelection} you want us to look for.\nOr type Exit to return to the previous selection menu.");
 
                                                 readResult = Console.ReadLine();
                                                 if (readResult != null)
                                                 {
-                                                    userMenuSelection = readResult.Trim().ToLower();
+                                                    userSelectedComparison = readResult.Trim();
                                                 }
-
-                                                if (userMenuSelection == "y" || userMenuSelection == "yes")
+                                            */
+                                                if (userSelectedComparison != "exit")
                                                 {
                                                     Animal.DisplayAnimalsWith("cat", userCharacteristicSelection, userSelectedComparison, storedAnimals);
-                                                    break;
+                                                    userSelectedComparison = "exit";
+                                                    userCharacteristicSelection = "exit";
 
-                                                    // TODO : for Testing: should i put a userMenuSelection = "exit"; here? to escape out of the next loop or couple of loops?
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("\nYou've selected to go back to the previous screen.");
+                                                    Console.WriteLine("Press the Enter key to continue.");
+                                                    Console.ReadLine();
                                                 }
 
-                                            }
-                                        } while (userMenuSelection != "exit");
-                                    }else
-                                    {
-                                        // if characteristic is NOT age, then no need to verify input. can directly compare string to string w/o errors
 
-                                        Animal.DisplayAnimalsWith("cat", userCharacteristicSelection, userMenuSelection, storedAnimals);
-                                        break;
+                                            } while (userSelectedComparison != "exit");
 
-                                    }
 
-                                } while (userMenuSelection != "exit");
+                                            break;
+
+                                        }
+
+                                    } while (userSelectedComparison != "exit");
 
 
 
-                            }else
-                            {
-                                Console.WriteLine("You didn't seem to select a valid characteristic. Please try again.");
-                                Console.WriteLine("Press the Enter key to continue.");
+                                }else if (userCharacteristicSelection != "exit")
+                                {
+                                    Console.WriteLine("You didn't seem to select a valid characteristic. Please try again.");
+                                    Console.WriteLine("Press the Enter key to continue.");
 
-                                Console.ReadLine();
+                                    Console.ReadLine();
+                                }else
+                                {
+                                    // userCharacteristicSelection is exit
+                                    Console.WriteLine("You've seleceted to return to the main menu.");
+                                    Console.WriteLine($"\nPress the Enter key to continue.");
+
+                                    Console.ReadLine();
+                                }
                             }
+                            
 
-
-                        } while (userMenuSelection != "exit");
+                        } while (userCharacteristicSelection != "exit");
 
                         break;
 
@@ -560,6 +606,8 @@ namespace SimpleProject
                     case "eight":
                         Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
                         // call DisplayAnimalsWith("dog", user input string type, user input string data, storedAnimals);
+                        
+                        userCharacteristicSelection = "";
 
                         do
                         {
@@ -568,9 +616,6 @@ namespace SimpleProject
                             Console.WriteLine("Please enter one of the following characterstics to search for: 'age', 'physical description', 'personality', or 'nickname' \nOR type exit to return to the main menu.");
 
                             string[] checkCharacteristicOptions = new string[] { "age", "physical description", "personality", "nickname" };
-                            string userCharacteristicSelection = "";
-
-
 
 
                             readResult = Console.ReadLine();
