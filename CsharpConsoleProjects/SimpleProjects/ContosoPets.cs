@@ -76,7 +76,6 @@ namespace SimpleProject
                 }
 
 
-                // per microsoft tutorial, Console.ReadLine on its own can pause code execution
                 readResult = Console.ReadLine();
 
                 switch (userMenuSelection)
@@ -113,7 +112,7 @@ namespace SimpleProject
                             }
                         }
                         Console.WriteLine("\nAll pets have visited the vet!");
-                        Console.WriteLine("Their ages and physical descriptions are now complete.");
+                        Console.WriteLine("Their ages and physical descriptions are now complete.\n");
                 
                         break;
 
@@ -138,8 +137,6 @@ namespace SimpleProject
 
                     case "5":
                     case "five":
-                        Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
-                        // call animal.EditAge(int newAge) function
 
                         do
                         {
@@ -322,22 +319,48 @@ namespace SimpleProject
                     case "6":
                     case "six":
 
-
                         string userSelectedPersonality = "";
 
-                        Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
-                        // call animal.EditPersonality(string newPersonality) function
                         do
                         {
+                            Console.Clear();
                             Console.WriteLine("You've selected to edit an animal's personality description.");
+                            Console.WriteLine("These are our pets and their personalities:\n");
                             
                             foreach (Animal a in storedAnimals)
                             {
-                                Console.WriteLine($"Pet ID: ({a.PetID}) is a {a.Species} with the nickname {a.Nickname}. \n{a.Nickname} has the following personality:\n\t'{a.Personality}'.");
+                                if (a != null)
+                                {
+                                    if (String.IsNullOrEmpty(a.Nickname) || a.Nickname.ToLower() == "unknown")
+                                    {
+                                        if(String.IsNullOrEmpty(a.Personality) || a.Personality.ToLower() == "unknown")
+                                        {
+                                            Console.WriteLine($"\nWe have a {a.Species} with no nickname and the pet id: {a.PetID}. They have an unknown personality.");
+                                        } else
+                                        {
+                                            Console.WriteLine($"\nWe have a {a.Species} with no nickname and the pet id: {a.PetID}.");
+                                            Console.WriteLine($"They have the following personality: \n\r'{a.Personality}'");
+                                        }
+                                    } else  
+                                    {
+                                        if (String.IsNullOrEmpty(a.Personality) || a.Personality.ToLower() == "unknown")
+                                        {
+                                            Console.WriteLine($"\nWe have a {a.Species} nicknamed {a.Nickname} with the id: {a.PetID}. They have an unknown personality.");
+
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"\nWe have a {a.Species} nicknamed {a.Nickname} with the id: {a.PetID}. \n{a.Nickname} has the following personality:\n\r'{a.Personality}'");
+
+                                        }
+
+                                    }
+                                }
+
                             }
 
                             
-                            Console.WriteLine("Please enter a valid Pet ID to continue. Or type exit to return to the previous menu.");
+                            Console.WriteLine("\nPlease enter a valid Pet ID to continue. Or type exit to return to the previous menu.");
 
                             readResult = Console.ReadLine();
                             if (readResult != null)
@@ -347,29 +370,76 @@ namespace SimpleProject
 
                             for (int i = 0;i < storedAnimals.Length; i++)
                             {
-                                if (storedAnimals[i].PetID == userPetIdSelection)
+                                if (storedAnimals[i] != null)
                                 {
-                                    // if valid pet id, continue to ask user for personality input.
-                                    Console.WriteLine($"Okay, cool. We'll edit the personality of the pet ({storedAnimals[i].PetID}) and nickname {storedAnimals[i].Nickname}.");
-                                    Console.WriteLine("Please enter the new personality.");
-                                    Console.WriteLine("Or, type exit to return to the previous menu");
+                                    if (storedAnimals[i].PetID == userPetIdSelection)
+                                    {
+                                        // if valid pet id, continue to ask user for personality input.
+                                        if (String.IsNullOrEmpty(storedAnimals[i].Nickname) || storedAnimals[i].Nickname.ToLower() == "unknown")
+                                        {
+                                            Console.WriteLine($"\nOkay, cool. We'll edit the personality of the pet with id {storedAnimals[i].PetID}.");
+                                            if (String.IsNullOrEmpty(storedAnimals[i].Personality) || storedAnimals[i].Personality.ToLower() == "unknown")
+                                            {
+                                                Console.WriteLine("They currently have an unknown personality.");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine($"Their current personality is:\n\r'{storedAnimals[i].Personality}'");
+
+                                            }
+                                        } else
+                                        {
+                                            Console.WriteLine($"\nOkay, cool. We'll edit the personality of the pet ({storedAnimals[i].PetID}) nicknamed {storedAnimals[i].Nickname}.");
+                                        }
                                     
-                                    readResult = Console.ReadLine();
-                                    if (readResult != null)
-                                    {
-                                        userSelectedPersonality = readResult.Trim().ToLower();
+                                        Console.WriteLine("\nPlease enter the new personality.");
+                                        Console.WriteLine("Or type exit to return to the previous menu");
+                                    
+                                        readResult = Console.ReadLine();
+                                        if (readResult != null)
+                                        {
+                                            userSelectedPersonality = readResult.Trim().ToLower();
+                                        }
+
+                                        if (userSelectedPersonality != "exit")
+                                        {
+                                            storedAnimals[i] = storedAnimals[i].EditPersonality(userSelectedPersonality);
+
+                                            if(String.IsNullOrEmpty(storedAnimals[i].Nickname) || storedAnimals[i].Nickname.ToLower() == "unknown")
+                                            {
+                                                Console.WriteLine($"\nSuccess! We've changed the personality of the {storedAnimals[i].Species} with id {storedAnimals[i].PetID} to:\n'{storedAnimals[i].Personality}'");
+
+                                            } else
+                                            {
+                                                Console.WriteLine($"\nSuccess! We've changed the personality of {storedAnimals[i].Nickname}, a {storedAnimals[i].Species} with the pet id {storedAnimals[i].PetID} to: \n'{storedAnimals[i].Personality}'");
+                                            }
+
+                                            userSelectedPersonality = "exit";
+                                            userPetIdSelection = "exit";
+
+                                        }
+
+                                        i = storedAnimals.Length + 1;
+
                                     }
-
-                                    if (userSelectedPersonality != "exit")
-                                    {
-                                        storedAnimals[i] = storedAnimals[i].EditPersonality(userSelectedPersonality);
-
-                                    }
-
-                                    i = storedAnimals.Length + 1;
-
                                 }
+                                if (i == storedAnimals.Length - 1 && userPetIdSelection != "exit")
+                                {
+                                    // for loop over, no match was found.
+                                    Console.WriteLine("I'm sorry, I didn't recognize that pet id. Are you sure it's one of ours?");
+                                }
+                                
+                            } 
+                            if (userPetIdSelection != "exit" && userSelectedPersonality != "exit")
+                            {
+                                //pause code execution before starting loop over.
+                                //don't run confirmation if personality has just been set
+                                Console.WriteLine();
+                                Console.WriteLine("Press the Enter key to continue.");
+                                Console.ReadLine();
+
                             }
+
 
                         } while (userPetIdSelection != "exit");
 
@@ -385,7 +455,7 @@ namespace SimpleProject
                         {
 
                             Console.WriteLine("You've selected to display all cats with a specific characteristic.");
-                            Console.WriteLine("Please enter one of the following characterstics to search for: 'age', 'physical description', 'personality', or 'nickname' \nOR type exit to return to the main menu.");
+                            Console.WriteLine("Please enter one of the following characterstics to search for: \n - age \n - physical description \n - personality \n - nickname \n\nOR type exit to return to the main menu.");
 
                             string[] checkCharacteristicOptions = new string[] { "age", "physical description", "personality", "nickname"};
                             string userCharacteristicSelection = "";

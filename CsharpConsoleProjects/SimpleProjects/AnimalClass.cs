@@ -213,7 +213,7 @@ namespace SimpleProject
             // assign descriptions in a seprate method where species is provided?
             if (String.IsNullOrEmpty(this.PhysicalDescription) || this.PhysicalDescription.ToLower() == "unknown")
             {
-                Console.WriteLine($"VisitTheVet() :: Line216: {this.Species} ({this.PetID})'s current physical description is: \n\t{this.PhysicalDescription}");
+                
                 if (this.Species == "cat")
                 {
 
@@ -245,7 +245,7 @@ namespace SimpleProject
                     
                     for (int i = 0; i < dogPhysicalDescriptions.Length; i++) 
                     {
-                        Console.WriteLine($"VisitTheVet :: line248: iterator == {i}");
+                        
                         randomCharacteristic = random.Next(0, dogPhysicalDescriptions[i].Length);
                         characteristics += dogPhysicalDescriptions[i][randomCharacteristic] + " ";
 
