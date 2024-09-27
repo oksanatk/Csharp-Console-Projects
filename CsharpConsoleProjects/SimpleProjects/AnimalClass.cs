@@ -44,7 +44,7 @@ namespace SimpleProject
             },
             new string[]
             {
-                "mix", ""
+                "mix of breeds.", ""
             },
             new string[]
             {
@@ -73,11 +73,11 @@ namespace SimpleProject
             },
             new string[]
             {
-                "siamese", "persian", "american", "british", "devon-rex", "munchkin"
+                "male", "female"
             },
             new string[]
             {
-                "male", "female"
+                "siamese", "persian", "american", "british", "devon-rex", "munchkin"
             },
             new string[]
             {
@@ -213,51 +213,59 @@ namespace SimpleProject
             // assign descriptions in a seprate method where species is provided?
             if (String.IsNullOrEmpty(this.PhysicalDescription) || this.PhysicalDescription.ToLower() == "unknown")
             {
+                Console.WriteLine($"VisitTheVet() :: Line216: {this.Species} ({this.PetID})'s current physical description is: \n\t{this.PhysicalDescription}");
                 if (this.Species == "cat")
                 {
 
                     for (int i = 0; i < catPhysicalDescriptions.Length; i++)
                     {
-                        if (this.Species == "cat")
+
+                        randomCharacteristic = random.Next(0, catPhysicalDescriptions[i].Length);
+                        characteristics += catPhysicalDescriptions[i][randomCharacteristic] + " ";
+
+
+                        // small / med / large used to determine number weight later
+                        if (i == 0)
                         {
-                            randomCharacteristic = random.Next(0, catPhysicalDescriptions[i].Length);
-                            characteristics += catPhysicalDescriptions[i][randomCharacteristic] + " ";
-
-                            
-                            // small / med / large used to determine number weight later
-                            if (i == 0)
-                            {
-                                sizeVariance = randomCharacteristic + 1;
-                            }
-
-                            // append string 'weighing about xx pounds.' before sterilization
-                            if (i == 4)
-                            {
-                                randomCharacteristic = (int)(sizeVariance * 6 * (random.NextDouble() + 1));
-                                characteristics += $"weighing about {randomCharacteristic} pounds." + " ";
-
-                            }
+                            sizeVariance = randomCharacteristic + 1;
                         }
 
-                        if (this.Species == "dog"){
-                            randomCharacteristic = random.Next(0, dogPhysicalDescriptions.Length);
-                            characteristics += dogPhysicalDescriptions[i][randomCharacteristic] + " ";
+                        // append string 'weighing about xx pounds.' before sterilization
+                        if (i == 4)
+                        {
+                            randomCharacteristic = (int)(sizeVariance * 6 * (random.NextDouble() + 1));
+                            characteristics += $"weighing about {randomCharacteristic} pounds." + " ";
 
-                            if (i ==0)
-                            {
-                                sizeVariance = randomCharacteristic + 1;
-                            }
-                            if (i == 4)
-                            {
-                                randomCharacteristic = (int)(sizeVariance * 20 * (random.NextDouble() + 1.5));
-                                characteristics += $"weighing about {randomCharacteristic} pounds." + " ";
-
-                            }
                         }
                     }
+                }
+                        
+
+                if (this.Species == "dog"){
+                    
+                    for (int i = 0; i < dogPhysicalDescriptions.Length; i++) 
+                    {
+                        Console.WriteLine($"VisitTheVet :: line248: iterator == {i}");
+                        randomCharacteristic = random.Next(0, dogPhysicalDescriptions[i].Length);
+                        characteristics += dogPhysicalDescriptions[i][randomCharacteristic] + " ";
+
+                        if (i ==0)
+                        {
+                            sizeVariance = randomCharacteristic + 1;
+                        }
+                        if (i == 4)
+                        {
+                            randomCharacteristic = (int)(sizeVariance * 20 * (random.NextDouble() + 1.5));
+                            characteristics += $"weighing about {randomCharacteristic} pounds." + " ";
+
+                        }
+                    }
+                }
+
+                    Console.WriteLine($"VisitTheVet :: Line258 : var characteristics should become the new physcial description: \n\t'{characteristics}");
                     // assign new physical characteristics to parameter
                     this.PhysicalDescription = characteristics;
-                }
+                
             }else
             {
                 // if some data already exists, then only add sterilization, litter box training, & housebroken data
@@ -324,6 +332,14 @@ namespace SimpleProject
                 }
             }
 
+            if (!String.IsNullOrEmpty(this.Nickname) && this.Nickname.ToLower() != "unknown")
+            {
+                Console.WriteLine($"{this.Nickname} (pet id: {this.PetID}) has visited the vet!");
+            }else
+            {
+                Console.WriteLine($"The pet with the id ({this.PetID}) has visited the vet!");
+            }
+
             return this;
 
 
@@ -334,26 +350,24 @@ namespace SimpleProject
         public Animal GetToKnow()
         {
             // check if nickname and/or personality already exists
-            if (!String.IsNullOrEmpty(this.nickname) || (!String.IsNullOrEmpty(this.personality))) {
+            if (String.IsNullOrEmpty(this.Nickname) || String.IsNullOrEmpty(this.Personality) || this.Personality.ToLower() == "unknown" || this.Nickname.ToLower() == "unknown") {
 
                 // personality is empty
-                if (!String.IsNullOrEmpty(this.nickname))
+                if (String.IsNullOrEmpty(this.Nickname) || this.Nickname.ToLower() == "unknown")
                 {
                     randomCharacteristic = random.Next(0, nicknameOptions.Length);
-                    nickname = nicknameOptions[randomCharacteristic];
+                    this.Nickname = nicknameOptions[randomCharacteristic];
                 }
 
-                if (!String.IsNullOrEmpty(this.personality))
+                if (String.IsNullOrEmpty(this.Personality) || this.Personality.ToLower() == "unknown")
                 {
                     randomCharacteristic = random.Next(0,personalityTypes.Length);
-                    personality = personalityTypes[randomCharacteristic];  
+                    this.Personality = personalityTypes[randomCharacteristic];  
 
                 }
 
-                else
-                {
-                    Console.WriteLine($"The nickname and personality for {this.Nickname} (pet id: {this.PetID}) are already complete.");
-                }
+                Console.WriteLine($"You've gotten to know that this pet's (pet id: {this.PetID}) nickname is {this.Nickname} and their personality is: {this.Personality}.");
+             
 
                 return this;
             }
@@ -370,7 +384,7 @@ namespace SimpleProject
 
         public Animal NewAge(int newAge)
         {
-            this.age = newAge;
+            this.Age = newAge;
             return this;
         }
 
@@ -443,7 +457,7 @@ namespace SimpleProject
 
 
                     case "physical description":
-                        if (animalsGiven[i].species == species)
+                        if (animalsGiven[i].Species == species)
                         {
                             if (animalsGiven[i].PhysicalDescription.Contains(data)){
                                 Console.WriteLine($"{animalsGiven[i].Nickname} (pet id {animalsGiven[i].PetID}) contains the physical description {data}!");
@@ -455,7 +469,7 @@ namespace SimpleProject
 
 
                     case "personality description":
-                        if (animalsGiven[i].species == species)
+                        if (animalsGiven[i].Species == species)
                         {
                             if (animalsGiven[i].Personality.Contains(data))
                             {
@@ -468,7 +482,7 @@ namespace SimpleProject
 
 
                     case "nickname":
-                        if (animalsGiven[i].species == species)
+                        if (animalsGiven[i].Species == species)
                         {
                             if (animalsGiven[i].Nickname == data)
                             {
@@ -480,7 +494,7 @@ namespace SimpleProject
 
             }
 
-            Console.WriteLine($"That's all of the {species} we found with the characteristic '{data}'. \nCome back soon!");
+            Console.WriteLine($"That's all of the {species}s we found with the characteristic '{data}'. \nCome back soon!");
         }
 
     }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics.Tracing;
 using System.Linq;
+using System.Net.Cache;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,16 +12,11 @@ namespace SimpleProject
     class M3L6
     {
         /* Contoso Pets App
-         * - add predefined sample data to pets array
-         * Implement code branches corresponding to the user's menu selections
-         * Display all info contined in the array used to store pet data (based on user menu selection)
-         * Iterate an "add new animal info"code block that lets users add new animals to the pets array
-         *
+         *   - requires class AnimalClass.cs
+         *   allows user to choose between menu options to modify stored Animal Objects
          */
 
 
-        // so this is the entry class that calls the Animal Objects
-        // so, first print the menu message to the console. then? verify input?
         public static void ContosoPetClinic()
         {
 
@@ -28,10 +25,12 @@ namespace SimpleProject
             string? readResult;
             string userMenuSelection = "";
             string userPetIdSelection = "";
+            string userPetAgeSelection = "";
             string userSelectedComparison = "";
             int userSelectedAge;
 
-            // initialize the given default data
+
+            // initialize the given default data from microsoft tutorials
 
             storedAnimals[0] = new Animal("dog", 2, "medium sized cream colored female golden retriever weighing about 65 pounds. housebroken.", "loves to have her belly rubbed and likes to chase her tail. gives lots of kisses.", "lola");
 
@@ -65,8 +64,16 @@ namespace SimpleProject
                     userMenuSelection = readResult.Trim().ToLower();
                 }
 
-                Console.WriteLine($"You picked option number {userMenuSelection}.");
-                Console.WriteLine("Press the Enter key to continue");
+                if (userMenuSelection == "exit")
+                {
+                    Console.WriteLine("You are choosing to exit the Contoso Pet Clinic app.");
+                    Console.WriteLine("Press the Enter key to continue.");
+
+                } else
+                {
+                    Console.WriteLine($"You picked option number {userMenuSelection}.");
+                    Console.WriteLine("Press the Enter key to continue");
+                }
 
 
                 // per microsoft tutorial, Console.ReadLine on its own can pause code execution
@@ -84,6 +91,7 @@ namespace SimpleProject
                     case "2":
                     case "two":
 
+                        Console.Clear();
                         Console.WriteLine("You've selected to add a new animal to our clinc.");
 
                         storedAnimals = AddNewAnimal(storedAnimals);
@@ -94,42 +102,37 @@ namespace SimpleProject
 
                     case "3":
                     case "three":
-                        Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
-                        // animalInstance.VisitTheVet();
-                        //     done!
-                        //         --> methinks, anyway. not currently tested.
+
+                        Console.WriteLine("You've selected for all pets to visit the vet.");
 
                         for (int i = 0; i< storedAnimals.Length; i++)
                         {
                             if(storedAnimals[i] != null)
                             {
                                 storedAnimals[i] = storedAnimals[i].VisitTheVet();
-
-
-                                Console.WriteLine($"new {storedAnimals[i].Nickname}'s physical description is: \n\t{storedAnimals[i].PhysicalDescription}");
                             }
                         }
-
-                        Console.WriteLine("All animals have visited the vet. Age and physical descriptions are now complete.");
-
-
-                        
+                        Console.WriteLine("\nAll pets have visited the vet!");
+                        Console.WriteLine("Their ages and physical descriptions are now complete.");
+                
                         break;
 
 
 
                     case "4":
                     case "four":
-                        Console.WriteLine($"this feature ({userMenuSelection}) is under construction. check back soon.");
-                        // GetToKnow()
-                        //     -->> done!
+                        Console.WriteLine("You've selected to get to know all of our animals.");
 
                         for (int i = 0; i < storedAnimals.Length; i++)
                         {
-                            storedAnimals[i] = storedAnimals[i].GetToKnow();
+                            if (storedAnimals[i] != null)
+                            {
+                                storedAnimals[i] = storedAnimals[i].GetToKnow();
+                            }
+ 
                         }
 
-                        Console.WriteLine("We've gotten to know all of our animals!");
+                        Console.WriteLine("\nYou've gotten to know all of our animals!");
 
                         break;
 
@@ -140,14 +143,39 @@ namespace SimpleProject
 
                         do
                         {
-                            Console.WriteLine("You've selected to edit an animal's age.");
+                            Console.Clear();
+                            Console.WriteLine("You've selected to edit an animal's age.\n");
                             foreach (Animal a in storedAnimals)
                             {
-                                Console.WriteLine($"{a.Nickname} is a {a.Species} (pet id: {a.PetID}) with the age of {a.Age}.");
+                                if (a != null) 
+                                { 
+
+                                    if (String.IsNullOrEmpty(a.Nickname) || a.Nickname.ToLower() == "unknown")
+                                    {
+                                        // if both nickname and age are unknown
+                                        if (a.Age < 0)
+                                        {
+                                            Console.WriteLine($"We have a {a.Species} (pet id: {a.PetID}) with an unknown age.");
+                                        } else
+                                        {
+                                            Console.WriteLine($"We have a {a.Species} (pet id: {a.PetID}) with the age of {a.Age}.");
+                                        }
+                                    } else if (a.Age < 0)
+                                    {
+                                        // if nickname is known, but age is unknown
+                                        Console.WriteLine($"{a.Nickname} is a {a.Species} (pet id: {a.PetID} with an unknown age.");
+                                    }else
+                                    {
+                                        Console.WriteLine($"{a.Nickname} is a {a.Species} (pet id: {a.PetID}) with the age of {a.Age}.");
+
+                                    }
+
+                                }
+
                             }
 
-                            Console.WriteLine("Please enter the pet id of the whose age you'd like to edit.");
-                            Console.WriteLine("Or type exit to return to the previous menu.");
+                            Console.WriteLine("\nPlease enter the pet id of the pet whose age you'd like to edit.");
+                            Console.WriteLine("Or type exit to return to the main menu.");
 
                             readResult = Console.ReadLine();
                             if(readResult != null)
@@ -155,44 +183,134 @@ namespace SimpleProject
                                 userPetIdSelection = readResult.Trim().ToLower();
                             }
 
-                            for (int i = 0; i < storedAnimals.Length; i++)
+                            if (userPetIdSelection == "exit")
                             {
-                                if (storedAnimals[i].PetID == userPetIdSelection)
+                                Console.WriteLine("\nYou're choosing to go back to the main menu.");
+
+                            } else
+                            {
+                                for (int i = 0; i < storedAnimals.Length; i++)
                                 {
-                                    Console.WriteLine($"{storedAnimals[i].Nickname} (pet id: {storedAnimals[i].PetID}) currently has an age of {storedAnimals[i].Age}");
 
-                                    do
+                                    if (storedAnimals[i] != null) {
+
+                                        if (storedAnimals[i].PetID == userPetIdSelection)
+                                        {
+
+                                            // if matching pet id, print current age
+                                            if (String.IsNullOrEmpty(storedAnimals[i].Nickname) || storedAnimals[i].Nickname.ToLower() == "unknown")
+                                            {
+                                                if (storedAnimals[i].Age < 0)
+                                                {
+                                                    Console.WriteLine($"\nYou've selected our {storedAnimals[i].Species} with the pet id: ({storedAnimals[i].PetID}). They currently have an unknown age.");
+                                                } else
+                                                {
+                                                    Console.WriteLine($"\nYou've selected our {storedAnimals[i].Species} with the pet id: ({storedAnimals[i].PetID}). They currently have an age of {storedAnimals[i].Age}.");
+                                                }
+                                            } else if (storedAnimals[i].Age < 0)
+                                            {
+                                                Console.WriteLine($"\nYou've selected {storedAnimals[i].Nickname} (pet id: {storedAnimals[i].PetID}). They currently have an unknown age.");
+                                            } else
+                                            {
+                                                Console.WriteLine($"\nYou've selected {storedAnimals[i].Nickname} (pet id: {storedAnimals[i].PetID}). They currently have an age of {storedAnimals[i].Age}");
+                                            }
+
+                                            do
+                                            {
+                                                Console.WriteLine("\nPlease enter tne new age (00) that you'd like to set. Type -1 for an unknown age.");
+                                                Console.WriteLine("Or type exit to return to the previous menu.");
+
+                                             
+                                                readResult = Console.ReadLine();
+                                                if (readResult != null)
+                                                {
+                                                    userPetAgeSelection = readResult.Trim().ToLower();
+
+                                                    if (userPetAgeSelection == "exit")
+                                                    {
+                                                        Console.WriteLine("\nYou're choosing to go back to the previous menu.");
+                                                    }
+                                                }
+
+                                                if (int.TryParse(userPetAgeSelection, out userSelectedAge))
+                                                {
+                                                    if (userSelectedAge > 30)
+                                                    {
+                                                        Console.WriteLine("I'm sorry. That doesn't seem right. The oldest cat or dog we've ever heard of is only 30 years old.");
+                                                        Console.WriteLine("Press the Enter key to try again.");
+                                                        Console.ReadLine();
+
+                                                    } else
+                                                    {    
+                                                        if (userSelectedAge < -1)
+                                                        {
+                                                            userSelectedAge = -1;
+                                                        }
+                                                        // age is a valid number
+                                                        if (String.IsNullOrEmpty(storedAnimals[i].Nickname) || storedAnimals[i].Nickname.ToLower() == "unknown")
+                                                        {
+                                                            if (userSelectedAge == -1)
+                                                            {
+                                                                Console.WriteLine($"Now changing the age of our pet with the id ({storedAnimals[i].PetID}) to {userSelectedAge} (unknown age).");
+
+                                                            } else
+                                                            {
+                                                                Console.WriteLine($"Now changing the age of our pet with the id ({storedAnimals[i].PetID}) to {userSelectedAge}.");
+                                                            }
+                                                        } else
+                                                        {
+                                                            if (userSelectedAge == -1)
+                                                            {
+                                                                Console.WriteLine($"Now changing {storedAnimals[i].Nickname}'s (pet id: {storedAnimals[i].PetID}) age to {userSelectedAge} (unknown age).");
+                                                            } else
+                                                            {
+                                                                Console.WriteLine($"Now changing {storedAnimals[i].Nickname}'s (pet id: {storedAnimals[i].PetID}) age to {userSelectedAge}.");
+
+                                                            }
+                                                        }
+
+                                                        storedAnimals[i] = storedAnimals[i].NewAge(userSelectedAge);
+
+                                                        userPetAgeSelection = "exit";
+                                                        userPetIdSelection = "exit";
+
+                                                    }
+                                                    
+
+
+                                                }
+                                                else if (userPetAgeSelection != "exit")
+                                                {
+                                                    Console.WriteLine("Sorry, we couldn't recognize that age.");
+                                                    Console.WriteLine("Press the Enter key to continue.");
+                                                    Console.ReadLine();
+                                                }
+
+
+
+
+                                            } while (userPetAgeSelection != "exit");
+
+                                            i = storedAnimals.Length + 1;
+
+                                        }
+                                    }
+                                    if (i == storedAnimals.Length - 1)
                                     {
-                                        Console.WriteLine("Please enter tne new age (00) that you'd like to set. Type -1 for an unknown age.");
-                                        Console.WriteLine("Or type exit to return to the previous menu.");
+                                        // for loop over, pet id didn't match to anything
+                                        Console.WriteLine("\nI'm sorry. I didn't recognize that pet id. Are you sure it's one of ours?");
+                                    }
+                                } 
+                                if (userPetIdSelection != "exit" && userPetAgeSelection != "exit")
+                                {
+                                    // don't run this confirmation if a new age was just set
+                                    Console.WriteLine("Press Enter to continue.");
+                                    Console.ReadLine();
 
-                                        // TODO --> set max age? 
-
-                                        readResult = Console.ReadLine();
-                                        if (readResult != null)
-                                        {
-                                            userMenuSelection = readResult.Trim().ToLower();
-                                        }
-
-                                        if (int.TryParse(userMenuSelection, out userSelectedAge))
-                                        {
-                                            Console.WriteLine($"Now changing {storedAnimals[i].Nickname}'s (pet id: {storedAnimals[i].PetID}) age to {userSelectedAge}.");
-
-                                            storedAnimals[i] = storedAnimals[i].NewAge(userSelectedAge);
-
-
-                                        } else
-                                        {
-                                            Console.WriteLine("Sorry, we couldn't recognize that age.");
-                                        }
-
-                                        i = storedAnimals.Length + 1; //end the for loop
-
-
-
-                                    } while (userMenuSelection != "exit");
                                 }
+
                             }
+
 
                         } while (userPetIdSelection != "exit");
                             
@@ -483,16 +601,23 @@ namespace SimpleProject
                         break;
 
 
+                    case "exit":
+                    case "Exit":
+                        break;
+
+
                     default:
                         Console.WriteLine("I'm sorry. I didn't recognize that input. Please try again.");
                         break;
                 }
 
-                // pause code execution, then start loop over again
-                Console.WriteLine("Press the Enter key to continue.");
-                Console.ReadLine();
+                if (userMenuSelection != "exit") 
+                {
+                    // pause code execution, then start loop over again
+                    Console.WriteLine("Press the Enter key to continue.");
+                    Console.ReadLine();
 
-
+                }
 
             } while (userMenuSelection != "exit");
 
@@ -507,7 +632,13 @@ namespace SimpleProject
                     Console.WriteLine();
                     Console.WriteLine("ID #: " + pet.PetID);
                     Console.WriteLine("Species: " + pet.Species);
-                    Console.WriteLine("Age: " + pet.Age);
+                    if (pet.Age == -1)
+                    {
+                        Console.WriteLine("Age: Unknown");
+                    }else
+                    {
+                        Console.WriteLine("Age: " + pet.Age);
+                    }
                     Console.WriteLine("Nickname: " + pet.Nickname);
                     Console.WriteLine("Physical description: " + pet.PhysicalDescription);
                     Console.WriteLine("Personality: " + pet.Personality);
@@ -535,7 +666,7 @@ namespace SimpleProject
             if (isOpen)
             {
                 Console.WriteLine();
-                Console.WriteLine("Congrats, we have an open spot available.");
+                Console.WriteLine("Congrats, we have an open spot available!");
             }
             else
             {
@@ -557,6 +688,10 @@ namespace SimpleProject
             // MUST know if animal is a cat or dog to initialize
             do
             {
+                Console.Clear();
+                Console.WriteLine("You've selected to add a new animal to our clinic.");
+                Console.WriteLine("\nCongrats, we have an open spot available!");
+
                 Console.WriteLine("Is the new animal a cat or a dog?");
                 readResult = Console.ReadLine();
                 if (readResult != null) { userAnimalInput = readResult.Trim().ToLower(); }
@@ -590,7 +725,7 @@ namespace SimpleProject
                     Console.WriteLine("Got it! Thanks for letting us know.");
                     Console.WriteLine($"We're preparing a space for the new {animalSpecies} right now!");
 
-                    currentAnimals[openSpot] = new Animal(animalSpecies);
+                    currentAnimals[openSpot] = new Animal(animalSpecies, -1, "Unknown","Unknown","Unknown");
                     return currentAnimals;
 
                 } else if (userAnimalInput == "yes" || userAnimalInput == "y")
@@ -598,20 +733,13 @@ namespace SimpleProject
                     Console.WriteLine("That's great! We'll just ask a few more questions then...\n");
                 } else
                 {
-                    Console.WriteLine("I'm sorry, I didn't recognize that input. Please try again.");
+                    Console.WriteLine("\nI'm sorry, I didn't recognize that input. Please try again.");
                 }
 
             } while (userAnimalInput != "yes" && userAnimalInput != "y" && userAnimalInput != "no" && userAnimalInput != "n");
 
-            // if the user only knows one other characteristic, then i don't have enough constructors. 
-            // making more is simple, just time-consuming.
-            // and potentially not too useful for the amount of time it'll take
-            // orrr..... i could leave the number of constructors, but pass along empty string arguments 
-            // and handle the exception in the actual constructor?
 
-            //TODO:: make 2 total constructors in Animal class. 1 for species only, the other for all characteristics. 
-            //    assign empty strings to be unknown characteristics.
-
+            // default assign empty strings to be unknown characteristics
             string animalNickname = "";
             string animalPhysicalDescription = "";
             string animalPersonality = "";
@@ -619,6 +747,8 @@ namespace SimpleProject
 
             string[] askingOptions = new string[] { "age", "physical description", "personality", "nickname" };
 
+
+            // for loop - accept user input and save accordingly for each detail of animal class
             for (int i = 0; i < 4; i++)
             {
                 // ask if they know each characteristic
@@ -632,7 +762,8 @@ namespace SimpleProject
                     
                     if (userAnimalInput != "yes" && userAnimalInput != "y" && userAnimalInput != "n" && userAnimalInput != "no")
                     {
-                        Console.WriteLine("I'm sorry, I didn't recognize that input. Please try again.\n");
+                        Console.WriteLine("\nI'm sorry, I didn't recognize that input.\nPlease press Enter to try again.\n");
+                        Console.ReadLine();
                     }
                 } while (userAnimalInput != "yes" && userAnimalInput != "y" && userAnimalInput != "n" && userAnimalInput != "no");
 
@@ -643,24 +774,62 @@ namespace SimpleProject
                     {
                     Console.WriteLine($"That's great! Please type in this {animalSpecies}'s {askingOptions[i]}.");
                     readResult = Console.ReadLine();
-                    if (readResult != null) { userAnimalInput = readResult.Trim().ToLower(); }
+
+
+                    // if the input is the nickname, keep input case sensitive
+                    if (askingOptions[i] == "nickname")
+                    { 
+                        if (readResult != null)
+                        {
+                            userAnimalInput = readResult.Trim();
+                        }
+
+                    }else
+                    {
+                        if (readResult != null) 
+                        { 
+                            userAnimalInput = readResult.Trim().ToLower(); 
+                        }
+
+                    }
 
                     switch (i)
                     {
 
-// TODO - not sure if the following while loop works correctly
                         case 0:
-                            if (int.TryParse(userAnimalInput, out animalAge)) { }
-                            else 
+                            if (int.TryParse(userAnimalInput, out animalAge)) 
+                            {
+                                
+                                while(animalAge > 30 || animalAge < 0)
+                                {
+
+                                    Console.WriteLine("\nI'm sorry, that didn't look right. The oldest cat or dog we've ever heard of was only 30 years old.");
+                                    Console.WriteLine($"Please type in this {animalSpecies}'s age as a number (00) between 0 and 30");
+
+                                    readResult = Console.ReadLine();
+                                    if (readResult != null)
+                                    {
+                                        userAnimalInput = readResult.Trim().ToLower();
+                                    }
+
+                                    int.TryParse(userAnimalInput, out animalAge);
+                              
+                                 }
+
+                            } else 
                             {
                                 while (!int.TryParse(userAnimalInput, out animalAge))
                                 {
-                                    Console.WriteLine("I'm sorry. That input didn't look like a number. We need a number to represent their age.\n");
+                                    Console.WriteLine("\nI'm sorry. That input didn't look like a number. We need a number to represent their age.\n");
                                     Console.WriteLine("Please try again.");
                                     Console.WriteLine($"Please type in this {animalSpecies}'s age as a number (0):");
 
                                     readResult= Console.ReadLine();
-                                    if (readResult != null ) { userAnimalInput= readResult.Trim().ToLower(); } 
+                                    if (readResult != null ) 
+                                    { 
+                                        userAnimalInput= readResult.Trim().ToLower(); 
+                                    } 
+
                                 }
                             }
                             Console.WriteLine($"Thanks! We've recorded that this {animalSpecies}'s age is {animalAge}.");
@@ -668,6 +837,7 @@ namespace SimpleProject
                             Console.WriteLine("Press Enter to continue.");
                             Console.ReadLine();
                             break;
+
 
                         case 1:
                             animalPhysicalDescription = userAnimalInput;
@@ -678,6 +848,7 @@ namespace SimpleProject
                             break;
 
                         case 3:
+                            // nickname should remain case sensitive
                             animalNickname = userAnimalInput;
                             break;
 
