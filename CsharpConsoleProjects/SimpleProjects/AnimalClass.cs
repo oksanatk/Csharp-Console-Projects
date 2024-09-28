@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 
 namespace SimpleProject
 {
@@ -153,9 +154,9 @@ namespace SimpleProject
             PetID = GeneratePetID(animalSpecies);
 
             Age = -1;
-            Nickname = string.Empty;
-            PhysicalDescription = string.Empty;
-            Personality = string.Empty;
+            Nickname = "Unknown";
+            PhysicalDescription = "Unknown";
+            Personality = "Unknown";
         }
 
         public Animal(string animalSpecies, string nickname, string personalityDescription)
@@ -398,36 +399,58 @@ namespace SimpleProject
         public static void DisplayAnimalsWith(string species, string type, string data, Animal[] animalsGiven) {
             // NOTE: input specicies not currently validated. Make sure it's validated when calling the method
 
-            int ifAge;   // if type is age, string data will parse to this int
+            int comparisonAge = 0;   // if type is age, string data will parse to this int
+            bool foundAny = false;
 
             data = data.Trim().ToLower();
 
-            int.TryParse(type, out ifAge);
+            //int.TryParse(type, out ifAge);  >> is this line necessary or just redundant?
+
+            Console.Clear();
 
             switch (type)
             {
                 case "age":
-                    if (int.TryParse(data, out ifAge) && ifAge >= 0)
+                    if (int.TryParse(data, out comparisonAge) && comparisonAge >= 0)
                     { // if input type was age, and data is a parsable number, then check if each iteration of cat has a matching age
-                        Console.WriteLine($"We'll be showing {species}s with the age of {ifAge}.");
+                        Console.WriteLine($"\nWe're going to be showing {species}s with the age of {comparisonAge}.");
                         break;
 
                     }
                     else  { // tryparse failed (input data not an int, or age data was less than 0)
-                        Console.WriteLine($"The given age is unknown. We'll be showing {species}s with unknown ages.");
+                        Console.WriteLine($"\nThe given age is unknown. We'll be showing {species}s with unknown ages.");
                     }
                     break;
 
                 case "physical description":
-                    Console.WriteLine($"We're going to be showing {species}s who have a physical description of '{data}'.");
+                    if (data == "unknown")
+                    {
+                        Console.WriteLine($"\nWe're going to be showing {species}s who have an unknown physical description.");
+                    } else
+                    {
+                        Console.WriteLine($"\nWe're going to be showing {species}s who have a physical description of '{data}'.");
+                    }
+                    
                     break;
 
-                case "personality description":
-                    Console.WriteLine($"We're going to be showing {species}s who have '{data}' in their personality description.");
+                case "personality":
+                    if (data == "unknown")
+                    {
+                        Console.WriteLine($"\nWe're going to be showing {species}s who have an unknown personality description.");
+                    }else
+                    {
+                        Console.WriteLine($"\nWe're going to be showing {species}s who have '{data}' in their personality description.");
+                    }
                     break;
 
                 case "nickname":
-                    Console.WriteLine($"We're going to be showing {species}s who have the nickname '{data}'.");
+                    if (data == "unknown")
+                    {
+                        Console.WriteLine($"\nWe're going to be showing {species}s who have an unknown nickname.");
+                    } else
+                    {
+                        Console.WriteLine($"\nWe're going to be showing {species}s who have the nickname '{data}'.");
+                    }
                     break;
 
 
@@ -435,66 +458,177 @@ namespace SimpleProject
 
             for (int i = 0; i < animalsGiven.Length; i++)
             {
-                switch (type)
+                if (animalsGiven[i] != null)
                 {
-                    case "age":
-                        // TODO -- >> test the age portion of this switch statement
+                    switch (type)
+                    {
+                        case "age":
+                            // TODO -- >> test the age portion of this switch statement
 
-                        // at this point if ifAge is a number or defined, then they should have entered a valid number
-                        // if/else statement can 
+                            // at this point if ifAge is a number or defined, then they should have entered a valid number
+                            // if/else statement can 
 
-                        if (animalsGiven[i].Species == species)
-                        {
-                            if (int.TryParse(data, out ifAge) && ifAge >= 0)
+                            if (animalsGiven[i].Species == species)
                             {
-                                Console.WriteLine($"{animalsGiven[i].Nickname} (pet id: {animalsGiven[i].PetID}) is also a {species} with the age of {animalsGiven[i].Age}, just like the age we are checking for, {ifAge}!");
-                            } else 
+                                if (int.TryParse(data, out comparisonAge) && comparisonAge >= 0)
+                                {
+                                    if (animalsGiven[i].Age == comparisonAge)
+                                    {
+                                        if (String.IsNullOrEmpty(animalsGiven[i].Nickname) || animalsGiven[i].Nickname.ToLower() == "unknown")
+                                        {
+                                            Console.WriteLine($"\nThe {animalsGiven[i].Species} with the pet id {animalsGiven[i].PetID} has an age of {animalsGiven[i].Age}, just like the age we are checking for, {comparisonAge}!");
+
+                                        } else
+                                        {
+                                            Console.WriteLine($"\n{animalsGiven[i].Nickname}, whose pet id is {animalsGiven[i].PetID}, is also a {species} with the age of {animalsGiven[i].Age}, just like the age we are checking for, {comparisonAge}!");
+                                        }
+                                        foundAny = true;
+                                    }
+                                    
+                                } else 
+                                {
+                                    if (animalsGiven[i].Age == -1)
+                                    {
+                                        if (String.IsNullOrEmpty(animalsGiven[i].Nickname) || animalsGiven[i].Nickname.ToLower() == "unknown")
+                                        {
+                                            Console.WriteLine($"\nThe {animalsGiven[i].Species} with the pet id {animalsGiven[i].PetID} also has an unknown age!");
+
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"\n{animalsGiven[i].Nickname} is a {species} with the pet id: {animalsGiven[i].PetID}), who also has an unknown age!");
+                                            
+                                        }
+                                        foundAny = true;
+                                    }
+                                }
+                            }
+                            break;
+
+
+                        case "physical description":
+                            if (animalsGiven[i].Species == species)
                             {
-                                Console.WriteLine($"{animalsGiven[i].Nickname} (pet id: {animalsGiven[i].PetID}) has an unknown age");
+                                if (animalsGiven[i].PhysicalDescription.ToLower().Contains(data) ) {
+                                    if (String.IsNullOrEmpty(animalsGiven[i].Nickname) || animalsGiven[i].Nickname.ToLower() == "unknown")
+                                    {
+                                        Console.WriteLine($"\nThe {animalsGiven[i].Species} with the pet id {animalsGiven[i].PetID} contains the physical description {data}!");
+                                        Console.WriteLine($"This is the full physical description of {animalsGiven[i].Nickname}: ");
+                                        Console.WriteLine($"\r{animalsGiven[i].PhysicalDescription}");
+
+                                    } else
+                                    {
+                                        Console.WriteLine($"\n{animalsGiven[i].Nickname} (pet id {animalsGiven[i].PetID}) contains the physical description {data}!");
+                                        Console.WriteLine($"This is the full physical description of {animalsGiven[i].Nickname}: ");
+                                        Console.WriteLine($"\r{animalsGiven[i].PhysicalDescription}");
+                                    }
+
+                                    foundAny = true;
+
+                                }
                             }
-                        }
-                        break;
+                            break;
 
 
-                    case "physical description":
-                        if (animalsGiven[i].Species == species)
-                        {
-                            if (animalsGiven[i].PhysicalDescription.Contains(data)){
-                                Console.WriteLine($"{animalsGiven[i].Nickname} (pet id {animalsGiven[i].PetID}) contains the physical description {data}!");
-                                Console.WriteLine($"This is the full physical description of {animalsGiven[i].Nickname}: ");
-                                Console.WriteLine(animalsGiven[i].PhysicalDescription);
-                            }
-                        }
-                        break;
-
-
-                    case "personality description":
-                        if (animalsGiven[i].Species == species)
-                        {
-                            if (animalsGiven[i].Personality.Contains(data))
+                        case "personality":
+                            if (animalsGiven[i].Species == species)
                             {
-                                Console.WriteLine($"{animalsGiven[i].Nickname} (pet id {animalsGiven[i].PetID}) has {data} in their personality description!");
-                                Console.WriteLine($"This is the full personality description of {animalsGiven[i].Nickname}: ");
-                                Console.WriteLine(animalsGiven[i].Personality);
+                                if (animalsGiven[i].Personality.ToLower().Contains(data))
+                                {
+                                    if (String.IsNullOrEmpty (animalsGiven[i].Nickname) || animalsGiven[i].Nickname.ToLower() ==  "unknown")
+                                    {
+                                        Console.WriteLine($"\nThe {animalsGiven[i].Species} with the pet id {animalsGiven[i].PetID} has '{data}' in their personality description!");
+                                        Console.WriteLine($"This is the full personality description of the {animalsGiven[i].Species} with the pet id {animalsGiven[i].PetID}:");
+                                        Console.WriteLine($"\r{animalsGiven[i].Personality}");
+
+                                    } else
+                                    {
+                                        Console.WriteLine($"\n{animalsGiven[i].Nickname}, who has the pet id {animalsGiven[i].PetID}, has '{data}' in their personality description!");
+                                        Console.WriteLine($"This is the full personality description of {animalsGiven[i].Nickname}: ");
+                                        Console.WriteLine($"\r{animalsGiven[i].Personality}");
+                                    }
+
+                                    foundAny = true;   
+                                }
                             }
-                        }
-                        break;
+                            break;
 
 
-                    case "nickname":
-                        if (animalsGiven[i].Species == species)
-                        {
-                            if (animalsGiven[i].Nickname == data)
+                        case "nickname":
+                            if (animalsGiven[i].Species == species)
                             {
-                                Console.WriteLine($"Animal with ID #: {animalsGiven[i].PetID} has the nickname '{data}'!");
+                                if (animalsGiven[i].Nickname.Trim().ToLower() == data)
+                                {
+                                    if (String.IsNullOrEmpty (animalsGiven[i].Nickname) || animalsGiven[i].Nickname.ToLower() == "unknown")
+                                    {
+                                        Console.WriteLine($"\nThe {animalsGiven[i].Species} with the pet id {animalsGiven[i].PetID} has an unknown nickname!");
+                                    } else
+                                    {
+                                        Console.WriteLine($"\nThe {animalsGiven[i].Species} with the pet id {animalsGiven[i].PetID} has the nickname '{data}'!");
+
+                                    }
+
+                                    foundAny = true;
+                                }
                             }
-                        }
-                        break;
+                            break;
+                    }
                 }
+                
 
             }
+            if (foundAny)
+            {
+                if (type == "age")
+                {
+                    if (comparisonAge < 0)
+                    {
+                        Console.WriteLine($"\nThat's all the {species}s we found with an unknown age. \nCome back soon!");
+                    } else
+                    {
+                        Console.WriteLine($"\nThat's all of the {species}s with found with the age of {data}. \nCome back soon!");
+                    }
 
-            Console.WriteLine($"That's all of the {species}s we found with the characteristic '{data}'. \nCome back soon!");
+                } else
+                {
+                    if (data == "unknown")
+                    {
+                        Console.WriteLine($"\nThat's all of the {species}s we found with an unknown {type}. \nCome back soon!");
+                    } else
+                    {
+                        Console.WriteLine($"\nThat's all of the {species}s we found with the characteristic '{data}' in their {type}. \nCome back soon!");
+
+                    }
+
+                }
+            } else
+            {
+                if (type == "age")
+                {
+                    if (comparisonAge < 0)
+                    {
+                        Console.WriteLine($"\nI'm sorry, it looks like we didn't find any {species}s with unknown ages. \nCome back soon!");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"\nI'm sorry, it looks like we didn't find any {species}s with the age of {comparisonAge} \nCome back soon!");
+                    }
+
+                }
+                else
+                {
+                    if (data == "unknown")
+                    {
+                        Console.WriteLine($"\nI'm sorry, it looks like we didn't find any {species}s with an unknown {type}. \nCome back soon!");
+                    }else
+                    {
+                        Console.WriteLine($"\nI'm sorry, it looks like we didn't find any {species}s with the characteristic '{data}' in their {type}. \nCome back soon!");
+                    }
+
+
+                }
+            }
+
         }
 
     }
