@@ -464,6 +464,7 @@ namespace SimpleProject
                     case "exit":
                     case "Exit":
                         break;
+                        // need case exit to avoid printing error message
 
 
                     default:
