@@ -5,10 +5,6 @@ VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleProject", "SimpleProject.csproj", "{6DE3A125-6DB4-44B7-9C57-750C15F8D948}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContosoPetClinic_applet", "ContosoPetClinic_applet\ContosoPetClinic_applet.csproj", "{F701356C-F24B-488D-A53D-B66706B4F406}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TSCA-CoffeeShop-SpeechRecognition", "TSCA-CoffeeShop-SpeechRecognition-Tutorial\TSCA-CoffeeShop-SpeechRecognition\TSCA-CoffeeShop-SpeechRecognition.csproj", "{6D84E7C6-C58E-432A-8C2F-D96C7F01589D}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,14 +15,6 @@ Global
 		{6DE3A125-6DB4-44B7-9C57-750C15F8D948}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DE3A125-6DB4-44B7-9C57-750C15F8D948}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DE3A125-6DB4-44B7-9C57-750C15F8D948}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F701356C-F24B-488D-A53D-B66706B4F406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F701356C-F24B-488D-A53D-B66706B4F406}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F701356C-F24B-488D-A53D-B66706B4F406}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F701356C-F24B-488D-A53D-B66706B4F406}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6D84E7C6-C58E-432A-8C2F-D96C7F01589D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6D84E7C6-C58E-432A-8C2F-D96C7F01589D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6D84E7C6-C58E-432A-8C2F-D96C7F01589D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6D84E7C6-C58E-432A-8C2F-D96C7F01589D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
