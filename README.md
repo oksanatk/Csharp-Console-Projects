@@ -16,4 +16,4 @@ Highly similar to the above coffee shop. Extra practice with Azure's Speech Reco
 
 Based on a challenge project in Microsoft's Foundational C# course Challenge Project [here](https://learn.microsoft.com/en-us/training/modules/guided-project-develop-conditional-branching-looping/2-prepare)
 
-Note: I modified the challenge to meet all functional criteria, but using an Animal `Class` instead of the suggested 2-D `string[]`
+Note: I modified the challenge to meet all functional criteria, but using an Animal `Class` instead of the suggested 2-D `string[][]`
