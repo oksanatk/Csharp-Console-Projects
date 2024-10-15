@@ -22,9 +22,10 @@ using System.Diagnostics;
  *  */
 
 // okay -> how does my game work? Do they have to get 10 operations correct in a row to win? + any wrong answer = a loss?
-ShowMainMenu();
-
 List<Game> games = new List<Game>();
+Random random = new Random();
+
+ShowMainMenu();
 void ShowMainMenu()
 {
     // Display welcome banner (how to modify text size with Spectre.Console?
@@ -43,11 +44,11 @@ void ShowMainMenu()
     do
     {
         Console.Clear();
-        Console.WriteLine("[bold yellow]Welcome to our little Math Game![/]");
-        Console.WriteLine("\nYour menu options are:");
-        Console.WriteLine("\r1. View previous games");
-        Console.WriteLine("\r2. Start a new game");
-        Console.WriteLine("\nOR type 'exit' to exit the game");
+        AnsiConsole.MarkupLine("[bold yellow]Welcome to our little Math Game![/]");
+        AnsiConsole.MarkupLine("\nYour menu options are:");
+        AnsiConsole.MarkupLine("\r1. View previous games");
+        AnsiConsole.MarkupLine("\r2. Start a new game");
+        AnsiConsole.MarkupLine("\nOR type 'exit' to exit the game");
 
         readResult = Console.ReadLine();
         if (readResult != null)
@@ -57,14 +58,14 @@ void ShowMainMenu()
         switch (userMenuChoice)
         {
             case "exit":
-                Console.WriteLine("You are choosing to exit the game. Goodbye!");
-                Console.WriteLine("Press any key to continue");
+                AnsiConsole.MarkupLine("You are choosing to exit the game. Goodbye!");
+                AnsiConsole.MarkupLine("Press any key to continue");
                 Console.ReadKey();
                 break;
 
             case "one":
             case "1":
-                Console.WriteLine("You are choosing to view the previous games.");
+                AnsiConsole.MarkupLine("You are choosing to view the previous games.");
                 Console.Write("Press any key to continue");
                 Console.ReadKey();
                 ShowPreviousGames(games);
@@ -72,14 +73,102 @@ void ShowMainMenu()
 
             case "two":
             case "2":
-                Console.WriteLine("You are choosing to play a new game");
+                AnsiConsole.MarkupLine("You are choosing to play a new game");
+                Operator operation;
+                Difficulty level;
+
+                GetNewGameConditions(out level, out operation);
+                games.Add(PlayNewGame(operation,level));
+                break;
                 // call GetNewGameConditions() to validate which level / difficulty they would like
                 // then call PlayNewGame(Operator operation, Difficulty level) to play / store info of game
         }
 
     } while (userMenuChoice != "exit");
 
+}
 
+void GetNewGameConditions(out Difficulty level, out Operator op)
+{
+    op = Operator.addition;  // operator assignment necessary to avoid Error CS0177
+                             // compiler? thinks that the else statment in the outside loop is a branch that will never assign op, which is false
+                             // because the while loop will repeat forever
+    string? readResult;
+    string userOperationChoice = "";
+    string userDifficultyChoice = "";
+    bool validOperation = false;
+    bool validDifficulty = false;
+
+    do
+    {
+        Console.Clear();
+        AnsiConsole.MarkupLine("Before we begin, we'd like to ask you about the type of game you'd like to play.");
+        AnsiConsole.MarkupLine("\nHow difficult would you like your game to be?");
+        AnsiConsole.MarkupLine("The options are: [bold yellow]easy[/], [bold yellow]medium[/], and [bold yellow]hard[/]");
+
+        readResult = Console.ReadLine();
+        if (readResult != null)
+        {
+            userDifficultyChoice = readResult.Trim().ToLower();
+        }
+
+        if (Enum.TryParse<Difficulty>(userDifficultyChoice, out level))
+        {
+            AnsiConsole.MarkupLine($"\nWe've recorded that you want to play a(n) [bold aqua]{level}[/] game.");
+
+            do
+            {
+                AnsiConsole.MarkupLine("\nGreat! Can you also tell us which operation you'd like to play the game in?");
+                AnsiConsole.MarkupLine("\nYour options are:[bold yellow] addition[/], [bold yellow]subtraction[/], [bold yellow]multiplication[/], [bold yellow]division[/], or [bold yellow]random[/].");
+                AnsiConsole.MarkupLine("Random means that you may get problems in any operator.");
+
+                readResult = Console.ReadLine();
+                if (readResult != null)
+                {
+                    userOperationChoice = readResult.Trim().ToLower();
+                }
+
+                if (Enum.TryParse<Operator>(userOperationChoice, out op))
+                {
+                    AnsiConsole.MarkupLine($"\nWe've recorded that you want to play a game using the [bold aqua]{op}[/] operation.");
+                    validOperation = true;
+                } else
+                {
+                    AnsiConsole.MarkupLine("We're sorry, but we couldn't recognize that operation type. Please try again.");
+                }
+
+                AnsiConsole.MarkupLine("Press the Enter key to continue");
+                Console.ReadLine();
+            } while (!validOperation);
+
+            validDifficulty = true;
+        }else
+        {
+            AnsiConsole.MarkupLine("We're sorry, but we couldn't recognize that level of difficulty.");
+            AnsiConsole.MarkupLine("Press the Enter key to continue.");
+            Console.ReadLine();
+        } 
+    } while(!validDifficulty); 
+}
+
+Game PlayNewGame(Operator currentOperator, Difficulty level)
+{
+    List<MathProblem> currentProblems = new List<MathProblem>();
+    List<Operator> currentOperations = new List<Operator>();
+    bool ifWin = false;
+    System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+    stopwatch.Start();
+
+    // game code here
+    AnsiConsole.MarkupLine($"For testing purposes, you are currently playing a game with {currentOperator} operations and {level} difficulty.");
+    AnsiConsole.Confirm("testing the ansiconsole confirm");
+
+
+    stopwatch.Stop();
+    string timeElapsed = stopwatch.ToString();
+    Game thisGame = new Game(currentProblems, currentOperations, level, ifWin, timeElapsed);
+
+    return thisGame;
 }
 
 void ShowPreviousGames(List<Game> previousGames)
@@ -87,22 +176,22 @@ void ShowPreviousGames(List<Game> previousGames)
 
 }
 
-record Game (List<MathProblem> problems, List<Operator> operations, Difficulty level, bool winOrLose, string timeToPlay);
-record MathProblem (int num1, int num2, Operator operation, int userAnswer, bool correct);
+record Game (List<MathProblem> Problems, List<Operator> Operations, Difficulty Level, bool WinOrLose, string TimeToPlay);
+record MathProblem (int Num1, int Num2, Operator Operation, int UserAnswer, bool Correct);
 
 enum Operator
 {
-    Addition,
-    Subtraction,
-    Multiplication,
-    Division,
-    Random
+    addition,
+    subtraction,
+    multiplication,
+    division,
+    random
 }
 
 enum Difficulty
 {
-    Easy,
-    Medium,
-    Hard
+    easy,
+    medium,
+    hard
 }
 
