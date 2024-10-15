@@ -80,8 +80,14 @@ void ShowMainMenu()
                 GetNewGameConditions(out level, out operation);
                 games.Add(PlayNewGame(operation,level));
                 break;
-                // call GetNewGameConditions() to validate which level / difficulty they would like
-                // then call PlayNewGame(Operator operation, Difficulty level) to play / store info of game
+            // call GetNewGameConditions() to validate which level / difficulty they would like
+            // then call PlayNewGame(Operator operation, Difficulty level) to play / store info of game
+
+            default:
+                AnsiConsole.MarkupLine("Sorry, but we didn't recognize that menu option.");
+                AnsiConsole.MarkupLine("Please press Enter to try again.");
+                Console.ReadLine();
+                break;
         }
 
     } while (userMenuChoice != "exit");
