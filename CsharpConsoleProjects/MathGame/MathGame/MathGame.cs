@@ -157,24 +157,197 @@ void GetNewGameConditions(out Difficulty level, out Operator op)
     } while(!validDifficulty); 
 }
 
-Game PlayNewGame(Operator currentOperator, Difficulty level)
+Game PlayNewGame(Operator originalOperator, Difficulty level)
 {
+    Operator currentOperator = originalOperator;
     List<MathProblem> currentProblems = new List<MathProblem>();
-    List<Operator> currentOperations = new List<Operator>();
-    bool ifWin = false;
+
+    bool didUserWin = false;
+    int maxNum = 1;
+    int num1;
+    int num2;
+    int divisionProduct;
+    int userInt = -101;
+    bool isCorrect = false;
+    string prompt;
+    int correctAnswerCounter = 0;
+
     System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
     stopwatch.Start();
 
-    // game code here
-    AnsiConsole.MarkupLine($"For testing purposes, you are currently playing a game with {currentOperator} operations and {level} difficulty.");
-    AnsiConsole.Confirm("testing the ansiconsole confirm");
+    switch (level)
+    {
+        case Difficulty.easy:
+            maxNum = 11;
+            break;
+        case Difficulty.medium:
+            maxNum = 51;
+            break;
+        case Difficulty.hard:
+            maxNum = 101;
+            break;
+    }
 
+    // for each loop: display progress, previous problems in game, and collect user answer. then, continue.
+    for (int i = 0; i < 10; i++)
+    {
+        num1 = random.Next(1, maxNum);
+        num2 = random.Next(1, maxNum);
+
+        Console.Clear();
+        AnsiConsole.Progress()
+                .HideCompleted(false)
+                .Columns(new ProgressColumn[]
+                {
+                    new TaskDescriptionColumn(),
+                    new ProgressBarColumn(),
+                    new PercentageColumn(),
+                })
+                .Start(ctx =>
+                {
+                    var taskAnswerProblems = ctx.AddTask("[green]Problems Answered in this Game:[/]");
+                    taskAnswerProblems.Increment(i * 10);
+                });
+
+        DisplayPreviousProblems(currentProblems, true);
+
+        if (originalOperator == Operator.random)
+        {
+            int randOperator = random.Next(0, 4);
+            currentOperator = (Operator)randOperator;
+        }
+
+        switch (currentOperator)
+        {
+            case Operator.addition:
+                prompt = $"{num1} + {num2} = ";
+                userInt = GetUserAnswer(prompt);
+                isCorrect = num1 + num2 == userInt ? true : false;
+                correctAnswerCounter = num1 + num2 == userInt ? correctAnswerCounter += 1 : correctAnswerCounter += 0;
+                break;
+
+            case Operator.subtraction:
+                prompt = $"{num1} - {num2} = ";
+                userInt = GetUserAnswer(prompt);
+                isCorrect = num1 - num2 == userInt ? true : false;
+                correctAnswerCounter = num1 - num2 == userInt ? correctAnswerCounter += 1 : correctAnswerCounter += 0;
+                break;
+
+            case Operator.multiplication:
+                prompt = $"{num1} * {num2} = ";
+                userInt = GetUserAnswer(prompt);
+                isCorrect = num1 * num2 == userInt ? true : false;
+                correctAnswerCounter = num1 * num2 == userInt ? correctAnswerCounter += 1 : correctAnswerCounter += 0;
+                break;
+
+            case Operator.division:
+                divisionProduct = num1 * num2;
+                num2 = num1;
+                num1 = divisionProduct;
+
+                prompt = $"{num1} / {num2} = ";
+                userInt = GetUserAnswer(prompt);
+                isCorrect = num1 / num2 == userInt ? true : false;
+                correctAnswerCounter = num1 / num2 == userInt ? correctAnswerCounter += 1 : correctAnswerCounter += 0;
+                break;
+        }
+        currentProblems.Add(new MathProblem(num1, num2, currentOperator, userInt, isCorrect));
+    }
+    didUserWin = correctAnswerCounter >= 8 ? true : false;
 
     stopwatch.Stop();
-    string timeElapsed = stopwatch.ToString();
-    Game thisGame = new Game(currentProblems, currentOperations, level, ifWin, timeElapsed);
+    string[] bigTimes = stopwatch.ToString().Split('.');
+    string[] minSecTimes = bigTimes[0].Split(":");
+    string timeElapsed = $"{minSecTimes[1]} minutes and {minSecTimes[2]} seconds";
 
+    // final display of the problems and answers of completed game below
+    DisplayPreviousProblems(currentProblems, true);
+
+    AnsiConsole.MarkupLine($"\nDun dun dunnnnnn....... \nDid you win or lose? \n{(didUserWin ? "[green]You won![/]" : "[maroon]You lost![/]")}");
+    AnsiConsole.MarkupLine($"You got {correctAnswerCounter} / 10 questions right.");
+    AnsiConsole.MarkupLine($"It took you: {timeElapsed} to complete the game.");
+
+    AnsiConsole.MarkupLine("\n\nPress any key to continue.");
+    Console.ReadKey();
+
+    Game thisGame = new Game(currentProblems, level, didUserWin, timeElapsed);
     return thisGame;
+}
+
+void DisplayPreviousProblems(List<MathProblem> problems, bool showProgress)
+{
+    string viewProblem = $"";
+    string userAnswerColor;
+
+    if (showProgress)
+    {    
+        Console.Clear();
+        AnsiConsole.Progress()
+                .HideCompleted(false)
+                .Columns(new ProgressColumn[]
+                {
+                        new TaskDescriptionColumn(),
+                        new ProgressBarColumn(),
+                        new PercentageColumn(),
+                })
+                .Start(ctx =>
+                {
+                    var taskAnswerProblems = ctx.AddTask("[green]Problems Answered in this Game:[/]");
+                    taskAnswerProblems.Increment(problems.Count * 10);
+                });
+    }
+
+    foreach (MathProblem p in problems)
+    {
+        userAnswerColor = p.Correct ? $"[green]{p.UserAnswer}[/]" : $"[maroon]{p.UserAnswer}[/]";
+
+        switch (p.Operation)
+        {
+            case Operator.addition:
+                viewProblem = $"[bold yellow]{p.Num1}[/] + [bold yellow]{p.Num2}[/] = " + userAnswerColor;
+                break;
+
+            case Operator.subtraction:
+                viewProblem = $"[bold yellow]{p.Num1}[/] - [bold yellow]{p.Num2}[/] = " + userAnswerColor;
+                break;
+
+            case Operator.multiplication:
+                viewProblem = $"[bold yellow]{p.Num1}[/] * [bold yellow]{p.Num2}[/] = " + userAnswerColor;
+                break;
+
+            case Operator.division:
+                viewProblem = $"[bold yellow]{p.Num1}[/] / [bold yellow]{p.Num2}[/] = " + userAnswerColor;
+                break;
+        }
+
+        AnsiConsole.MarkupLine(viewProblem);
+    }
+}
+int GetUserAnswer(string prompt)
+{
+    int userNum = -101;
+    string? readResult;
+    bool validAnswer = false;
+
+
+    while (!validAnswer)
+    {
+        AnsiConsole.Markup(prompt);
+        readResult = Console.ReadLine();
+        if (readResult != null)
+        {
+            if (int.TryParse(readResult, out userNum))
+            {
+                validAnswer = true;
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("\nSorry, but that didn't look like a number. Please try again.");
+            }
+        } 
+    }
+
+    return userNum;
 }
 
 void ShowPreviousGames(List<Game> previousGames)
@@ -182,7 +355,7 @@ void ShowPreviousGames(List<Game> previousGames)
 
 }
 
-record Game (List<MathProblem> Problems, List<Operator> Operations, Difficulty Level, bool WinOrLose, string TimeToPlay);
+record Game (List<MathProblem> Problems, Difficulty Level, bool WinOrLose, string TimeToPlay);
 record MathProblem (int Num1, int Num2, Operator Operation, int UserAnswer, bool Correct);
 
 enum Operator
