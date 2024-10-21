@@ -300,25 +300,7 @@ void DisplayPreviousProblems(List<MathProblem> problems, bool showProgress)
     foreach (MathProblem p in problems)
     {
         userAnswerColor = p.Correct ? $"[green]{p.UserAnswer}[/]" : $"[maroon]{p.UserAnswer}[/]";
-
-        switch (p.Operation)
-        {
-            case Operator.addition:
-                viewProblem = $"[bold yellow]{p.Num1}[/] + [bold yellow]{p.Num2}[/] = " + userAnswerColor;
-                break;
-
-            case Operator.subtraction:
-                viewProblem = $"[bold yellow]{p.Num1}[/] - [bold yellow]{p.Num2}[/] = " + userAnswerColor;
-                break;
-
-            case Operator.multiplication:
-                viewProblem = $"[bold yellow]{p.Num1}[/] * [bold yellow]{p.Num2}[/] = " + userAnswerColor;
-                break;
-
-            case Operator.division:
-                viewProblem = $"[bold yellow]{p.Num1}[/] / [bold yellow]{p.Num2}[/] = " + userAnswerColor;
-                break;
-        }
+        viewProblem = $"[bold yellow]{p.Num1}[/] {GetOperatorString(p.Operation)} [bold yellow]{p.Num2}[/] = " + userAnswerColor;
 
         AnsiConsole.MarkupLine(viewProblem);
     }
@@ -352,7 +334,50 @@ int GetUserAnswer(string prompt)
 
 void ShowPreviousGames(List<Game> previousGames)
 {
+    Console.Clear();
+    if(previousGames.Count == 0)
+    {
+        AnsiConsole.MarkupLine("There are no previous games to display.");
+    }
+    else
+    {
+        Table table = new Table().Centered();
+        table.AddColumn("Problem:");
+        table.AddColumn("Answer");
 
+        foreach (Game game in previousGames)
+        {
+            foreach (MathProblem problem in game.Problems)
+            {
+                string userAnswerColor = problem.Correct ? $"[green]{problem.UserAnswer}[/]" : $"[maroon]{problem.UserAnswer}[/]";
+                table.AddRow($"[bold yellow]{problem.Num1}[/] {GetOperatorString(problem.Operation)} [bold yellow]{problem.Num2}[/] = ", userAnswerColor);
+            }
+            table.AddEmptyRow();
+            table.AddRow("Winner?", (game.WinOrLose ? "[green]Winner![/]" : "[maroon]Loser.[/]"));
+            table.AddRow("Time to Play:", game.TimeToPlay);
+        }
+        AnsiConsole.Write(table); 
+    }
+
+    AnsiConsole.MarkupLine("\nPress the Enter key to continue.");
+    Console.ReadLine();
+
+}
+string GetOperatorString(Operator operation)
+{
+    switch (operation)
+    {
+        case Operator.addition:
+            return "+";
+        case Operator.subtraction:
+            return "-";
+        case Operator.division:
+            return "/";
+        case Operator.multiplication:
+            return "*";
+    }
+
+    return "";
 }
 
 record Game (List<MathProblem> Problems, Difficulty Level, bool WinOrLose, string TimeToPlay);
