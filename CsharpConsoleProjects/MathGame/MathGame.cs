@@ -1,5 +1,7 @@
-﻿using Spectre.Console;
+﻿using Microsoft.CognitiveServices.Speech.Diagnostics.Logging;
+using Spectre.Console;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 
 /*  Math Game challenge by the C# Academy
  *  Criteria:
@@ -28,16 +30,6 @@ Random random = new Random();
 ShowMainMenu();
 void ShowMainMenu()
 {
-    // Display welcome banner (how to modify text size with Spectre.Console?
-    // Display number of previous games as a number + menu option to view previous games
-    //      + menu option to exit
-    //      + menu option to play a new game     --> call CreateNewGame()?
-
-    // Choose the Operation that you'd like to play + validate input
-
-    // Choose the difficulty + validate input
-
-    // Call PlayNewGame(userOperation, userDifficulty)
     string? readResult = "";
     string userMenuChoice = "";
 
@@ -80,8 +72,6 @@ void ShowMainMenu()
                 GetNewGameConditions(out level, out operation);
                 games.Add(PlayNewGame(operation,level));
                 break;
-            // call GetNewGameConditions() to validate which level / difficulty they would like
-            // then call PlayNewGame(Operator operation, Difficulty level) to play / store info of game
 
             default:
                 AnsiConsole.MarkupLine("Sorry, but we didn't recognize that menu option.");
@@ -341,22 +331,31 @@ void ShowPreviousGames(List<Game> previousGames)
     }
     else
     {
-        Table table = new Table().Centered();
-        table.AddColumn("Problem:");
-        table.AddColumn("Answer");
+        Grid grid = new Grid();
+        grid.AddColumn();
 
         foreach (Game game in previousGames)
         {
+
+            Table table = new Table().Centered();
+            table.Border(TableBorder.Rounded);
+            table.AddColumn("[bold aqua]Problem:[/]");
+            table.AddColumn("[bold aqua]Answer[/]");
+
             foreach (MathProblem problem in game.Problems)
             {
                 string userAnswerColor = problem.Correct ? $"[green]{problem.UserAnswer}[/]" : $"[maroon]{problem.UserAnswer}[/]";
                 table.AddRow($"[bold yellow]{problem.Num1}[/] {GetOperatorString(problem.Operation)} [bold yellow]{problem.Num2}[/] = ", userAnswerColor);
             }
             table.AddEmptyRow();
-            table.AddRow("Winner?", (game.WinOrLose ? "[green]Winner![/]" : "[maroon]Loser.[/]"));
-            table.AddRow("Time to Play:", game.TimeToPlay);
+            table.AddRow("[bold aqua]Winner?[/]", (game.WinOrLose ? "[green]Winner![/]" : "[maroon]Loser.[/]"));
+            table.AddRow("[bold aqua]Time to Play:[/]", game.TimeToPlay);
+
+            grid.AddRow(table);
+            grid.AddEmptyRow();
+
         }
-        AnsiConsole.Write(table); 
+        AnsiConsole.Write(grid); 
     }
 
     AnsiConsole.MarkupLine("\nPress the Enter key to continue.");
