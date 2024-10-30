@@ -180,7 +180,13 @@ void ShowPreviousGames(List<Game> previousGames, bool voiceMode)
     if (voiceMode)
     {
         AnsiConsole.MarkupLine("Say 'Continue' to continue.");
-        Task<String> voiceResult = GetVoiceInput();
+        string ifContinue = "";
+        while (!ifContinue.Contains('c'))
+        {
+            Task<String> voiceResult = GetVoiceInput();
+            ifContinue = voiceResult.Result;
+        }
+        Thread.Sleep(2000);
     }else
     {
         AnsiConsole.MarkupLine("\nPress the Enter key to continue.");
@@ -294,14 +300,20 @@ Game PlayNewGame(Operator originalOperator, Difficulty level, bool voiceMode)
     // final display of the problems and answers of completed game below
     DisplayPreviousProblems(currentProblems, true);
 
-    AnsiConsole.MarkupLine($"\n[bold yellow[Dun dun dunnnnnn....... \nDid you win or lose?[/]\n\n{(didUserWin ? "[green]You won![/]" : "[maroon]You lost![/]")}");
+    AnsiConsole.MarkupLine($"\n[yellow]Dun dun dunnnnnn....... \nDid you win or lose?[/]\n\n{(didUserWin ? "[green]You won![/]" : "[maroon]You lost![/]")}");
     AnsiConsole.MarkupLine($"\nYou got {correctAnswerCounter} / 10 questions right.");
     AnsiConsole.MarkupLine($"It took you: {timeElapsed} to complete the game.");
 
     if (voiceMode)
     {
-        AnsiConsole.MarkupLine("Say anything to continue.");
-        Task<String> voiceResult = GetVoiceInput();
+        AnsiConsole.MarkupLine("Say 'Continue' to continue.");
+        string ifContinue = "";
+        while (!ifContinue.Contains('c'))
+        {
+            Task<String> voiceResult = GetVoiceInput();
+            ifContinue = voiceResult.Result;
+        }
+        Thread.Sleep(2000);
     } else
     {
         AnsiConsole.MarkupLine("\n\nPress any key to continue.");
@@ -357,11 +369,7 @@ void GetNewGameConditions(out Difficulty level, out Operator op, bool voiceMode)
                 if (voiceMode)
                 {
                     voiceResult = GetVoiceInput();
-                    if (voiceResult != null)
-                    {
-                        userOperationChoice = voiceResult.Result;
-                    }
-
+                    userOperationChoice = voiceResult.Result;
                 } else
                 {
                     readResult = Console.ReadLine();
@@ -383,7 +391,7 @@ void GetNewGameConditions(out Difficulty level, out Operator op, bool voiceMode)
                 // confirm or pause execution before starting inner operation loop again
                 if (voiceMode)
                 {
-                    AnsiConsole.WriteLine("Please wait 3 seconds to try again.");
+                    AnsiConsole.WriteLine("Please wait a few seconds.");
                     Thread.Sleep(3000);
                 } else
                 {
@@ -461,7 +469,7 @@ async Task<string> GetVoiceInput()
         counter++;
     }
     AnsiConsole.MarkupLine($"[bold yellow]Voice Input Recognized:[/] {result.Text}");
-    string userInput = Regex.Replace(result.Text.Trim().ToLower(), @"[^a-z0-9\s]", "");
+    string userInput = Regex.Replace(result.Text.Trim().ToLower(), @"[^a-z0-9\s-]", "");
 
     return userInput;
 }
