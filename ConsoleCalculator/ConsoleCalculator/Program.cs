@@ -1,4 +1,7 @@
-﻿float num1=0;
+﻿using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
+
+float num1=0;
 float num2=0;
 string? readResult;
 
@@ -7,11 +10,10 @@ ShowMainMenu();
 
 void ShowMainMenu()
 {
+    bool endApp = false;
     bool validNum1 = false;
     do
     {
-        // outer loop continues until num1 is assigned a real number
-
         Console.Clear();
         Console.WriteLine("Console Calculator in C#");
         Console.WriteLine("------------------------\n");
@@ -30,29 +32,30 @@ void ShowMainMenu()
                 Console.ReadLine();
             }
         }
-
-        bool validNum2 = false;
-        do
-        {
-            // inner loop continues while num2 isn't a real number
-
-            Console.WriteLine("\nEnter another number, and then press the 'Enter' key to continue.");
-
-            readResult = Console.ReadLine();
-            if (readResult != null)
-            {
-                if (float.TryParse(readResult, out num2))
-                {
-                    validNum2 = true;   
-                }
-                else
-                {
-                    Console.WriteLine("Sorry, but I couldn't understand that number. Press the 'Enter' key to try again.");
-                    Console.ReadLine();
-                }
-            }
-        } while(!validNum2);
     } while(!validNum1);
+
+    bool validNum2 = false;
+    do
+    { 
+        Console.WriteLine("\nEnter another number, and then press the 'Enter' key to continue.");
+
+        readResult = Console.ReadLine();
+        if (readResult != null)
+        {
+            if (float.TryParse(readResult, out num2))
+            {
+                validNum2 = true;   
+            }
+            else
+            {
+                Console.WriteLine("Sorry, but I couldn't understand that number. Press the 'Enter' key to try again.");
+                Console.ReadLine();
+            }
+        }
+    } while(!validNum2);
+
+    string? op;
+    double result = 0;
 
     Console.WriteLine("Choose an option from the following list:");
     Console.WriteLine("\ta - Add");
@@ -61,30 +64,32 @@ void ShowMainMenu()
     Console.WriteLine("\td - Divide");
     Console.Write("Your option? ");
 
-    // Use a switch statement to do the math.
-    switch (Console.ReadLine())
+    op = Console.ReadLine();
+    if (readResult != null || !(Regex.IsMatch(readResult,"[a|s|m|d]")))
     {
-        case "a":
-            Console.WriteLine($"Your result: {num1} + {num2} = " + (num1 + num2));
-            break;
-        case "s":
-            Console.WriteLine($"Your result: {num1} - {num2} = " + (num1 - num2));
-            break;
-        case "m":
-            Console.WriteLine($"Your result: {num1} * {num2} = " + (num1 * num2));
-            break;
-        case "d":
-            while (num2 == 0)
+        Console.WriteLine("I'm sorry, but I didn't understand that operator.");
+    }else
+    {
+        try
+        {
+            result = Calculator.DoOperation(num1, num2, readResult);
+            if (double.IsNaN(result))
             {
-                Console.WriteLine("Can't divide by 0. Please enter a different number.");
-                num2 = Convert.ToInt32(Console.ReadLine());
+                Console.WriteLine("This operation results in a mathematical error.");
             }
-            Console.WriteLine($"Your result: {num1} / {num2} = " + (num1 / num2));
-            break;
-        default:
-            Console.WriteLine("I didn't understand the option that you wanted.");
-            break;
+            else Console.WriteLine("Your result {0:0.##}\n", result);     
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Oh no! An exception by the name of 'E' occured while we were trying to do the math.\n - Details: " + e.Message);
+        }
     }
+    Console.WriteLine("------------------------\n");
+
+    Console.Write("Press 'n' and Enter to close the app, or press any other key and Enter to continue.");
+    if (Console.ReadLine() == "n") endApp = true;
+            
+    Console.WriteLine("\n");
 }
 
 class Calculator
