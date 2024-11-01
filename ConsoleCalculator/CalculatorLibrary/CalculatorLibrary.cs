@@ -6,8 +6,12 @@ namespace CalculatorLibrary
     public class Calculator
     {
         JsonTextWriter writer;
+        int timesUsed;
+
+        public int TimesUsed { get; private set; }
         public Calculator()
         {
+            timesUsed = 0;
             StreamWriter logFile = File.CreateText("calculatorlog.json");
             logFile.AutoFlush = true;
             writer = new JsonTextWriter(logFile);
@@ -28,19 +32,22 @@ namespace CalculatorLibrary
 
             switch (op)
             {
-                case "a":
+                case "add":
                     result = num1 + num2;
                     writer.WriteValue("Add");
                     break;
-                case "s":
+
+                case "sub":
                     result = num1 - num2;
                     writer.WriteValue("Subtract");
                     break;
-                case "m":
+
+                case "mult":
                     result = num1 * num2;
                     writer.WriteValue("Multiply");
                     break;
-                case "d":
+
+                case "div":
                     while (num2 == 0)
                     {
                         Console.WriteLine("Cannot divide by 0. Please enter another number.");
@@ -54,6 +61,36 @@ namespace CalculatorLibrary
                     }
                     break;
 
+                case "sq":
+                    result = Math.Sqrt(num1);
+                    writer.WriteValue("Square Root");
+                    break;
+
+                case "pow":
+                    result = Math.Pow(num1, num2);
+                    writer.WriteValue("Raised to the Power of");
+                    break;
+
+                case "10x":
+                    result = num1 * 10;
+                    writer.WriteValue("10X");
+                    break;
+
+                case "sin":
+                    result = Math.Sin(num1);
+                    writer.WriteValue("Sin");
+                    break;
+
+                case "cos":
+                    result = Math.Cos(num1);
+                    writer.WriteValue("Cos");
+                    break;
+
+                case "tan":
+                    result = Math.Tan(num1);
+                    writer.WriteValue("Tan");
+                    break;
+
                 default:
                     Console.WriteLine("I'm sorry, I didn't understand that operation.");
                     break;
@@ -61,6 +98,7 @@ namespace CalculatorLibrary
             writer.WritePropertyName("Result");
             writer.WriteValue(result);
             writer.WriteEndObject();
+            timesUsed++;
 
             return result;
         }
