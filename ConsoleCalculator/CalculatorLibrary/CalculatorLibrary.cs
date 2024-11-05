@@ -6,12 +6,10 @@ namespace CalculatorLibrary
     public class Calculator
     {
         JsonTextWriter writer;
-        int timesUsed;
-
         public int TimesUsed { get; private set; }
         public Calculator()
         {
-            timesUsed = 0;
+            TimesUsed = 0;
             StreamWriter logFile = File.CreateText("calculatorlog.json");
             logFile.AutoFlush = true;
             writer = new JsonTextWriter(logFile);
@@ -98,7 +96,7 @@ namespace CalculatorLibrary
             writer.WritePropertyName("Result");
             writer.WriteValue(result);
             writer.WriteEndObject();
-            timesUsed++;
+            TimesUsed++;
 
             return result;
         }
