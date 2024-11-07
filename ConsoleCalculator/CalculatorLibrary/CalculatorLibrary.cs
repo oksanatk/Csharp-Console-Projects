@@ -94,6 +94,7 @@ namespace CalculatorLibrary
 
                 default:
                     Console.WriteLine("I'm sorry, I didn't understand that operation.");
+                    writer.WriteValue("Invalid operation.");
                     break;
             }
             writer.WritePropertyName("Result");
@@ -119,13 +120,14 @@ namespace CalculatorLibrary
         }
 
         public void ShowPreviousCalculations(List<Calculation> previousCalcs)
-        {
+        {                
+            Console.WriteLine();
             if (previousCalcs.Count > 0)
             {
-                //format calculations
-                Console.WriteLine();
+                int counter = 1;
                 foreach (Calculation calc in previousCalcs)
                 {
+                    Console.Write($"Calculation {counter}:  ");
                     if (calc.Num2.Equals(double.NaN))
                     {
                         Console.WriteLine("{0} = {1}", OperationVisualizer(calc.Operation, calc.Num1), calc.Result);
@@ -134,6 +136,7 @@ namespace CalculatorLibrary
                     {
                         Console.WriteLine("{0} {1} {2} = {3}", calc.Num1, OperationVisualizer(calc.Operation), calc.Num2, calc.Result);
                     }
+                    counter++;
                 }
             }
             else
@@ -167,7 +170,7 @@ namespace CalculatorLibrary
                 case "tan":
                     return $"tan({singleNumberOperationNum})";
                 default:
-                    return "";
+                    return $"??{operation}?? {singleNumberOperationNum}";
             }
         }
     }

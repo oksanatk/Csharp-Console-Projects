@@ -3,6 +3,9 @@ using System.Text.RegularExpressions;
 using CalculatorLibrary;
 
 string? readResult;
+//string[] validMenuChoices = new string[] { "add", "sub", "mult", "div", "sq", "pow", "10x", "sin", "cos", "tan", "exit"};
+string[] validOperations = new string[] { "add", "sub", "mult", "div", "sq", "pow", "10x", "sin", "cos", "tan" };
+string[] singleNumberOperations = new string[] { "sq", "10x", "sin", "cos", "tan" }; 
 Calculator calculator = new Calculator();
 
 ShowMainMenu();
@@ -42,9 +45,6 @@ void ShowMainMenu()
             Console.Write("\nYour option? ");
 
 
-
-
-
             readResult = Console.ReadLine();
             if (readResult != null)
             {
@@ -53,12 +53,17 @@ void ShowMainMenu()
 
             if (op == "exit") { endApp = true; }
 
-            else if (op == "num") { Console.WriteLine("The calculator has been used {0} times.", calculator.TimesUsed); }
+            else if (op == "num") 
+            { 
+                Console.WriteLine("\nThe calculator has been used {0} times.", calculator.TimesUsed);
+                Console.WriteLine("\nPress the 'Enter' key to continue back to the main menu.");
+                Console.ReadLine();
+            }
 
             else if (op == "calc")
             {
                 Console.Clear();
-                Console.WriteLine("You are choosing to view previous operations.\n");
+                Console.WriteLine("You are choosing to view previous operations.");
                 calculator.ShowPreviousCalculations(calculator.RecentCalculations);
                 Console.WriteLine("\nEnter 'clear' to clear the history of recent calculations, or just press the 'Enter' key to continue.");
 
@@ -72,7 +77,7 @@ void ShowMainMenu()
                     }
                 }
             }
-            else if (Regex.IsMatch(op, "(add)|(sub)|(mult)|(div)|(sq)|(pow)|(10x)|(sin)|(cos)|(tan)"))
+            else if (validOperations.Contains(op))
             {
                 // valid operator, call function?
                 Console.WriteLine("You're choosing to {0} operation.", op);
@@ -82,49 +87,51 @@ void ShowMainMenu()
                 Console.WriteLine("I'm sorry, but I didn't understand that operator. Press Enter to try again.");
                 Console.ReadLine();
             }
-        } while (!Regex.IsMatch(op, "(add)|(sub)|(mult)|(div)|(sq)|(pow)|(10x)|(sin)|(cos)|(tan)|(num)|(exit)"));
+        } while (!validOperations.Contains(op) && op !="exit");
 
-        if (op != "num" && op != "exit")
+        if (op != "exit" && op !=null)
         {
-            num1 = GetNum();
+            num1 = GetNum(false);
 
             // if not single-num operation, get num2
-            if (op != null && Regex.IsMatch(op, "(add)|(sub)|(mult)|(div)|(pow)"))
+            if (!singleNumberOperations.Contains(op))
             {
-                num2 = GetNum();
+                num2 = GetNum(true);
             }
-        }
 
-        if (op != "exit" && op != "num" && op != "calc" && op != null)
-        {
             result = calculator.DoOperation(num1, num2, op);
             if (double.IsNaN(result))
             {
                 Console.WriteLine("This operation results in a mathematical error.");
             }
-            else Console.WriteLine("Your result is: {0:0.##}\n", result);
+            else Console.WriteLine("Your result is: {0}\n", result);
 
-            Console.WriteLine("------------------------\n");
-            if (op != "exit")
-            {
-                Console.Write("Enter 'exit' to close the app, or press the 'Enter' key to continue. ");
-                if (Console.ReadLine() == "exit") endApp = true;
+            Console.WriteLine("\t------------------------\n");
+            Console.Write("Enter 'exit' to close the app, or press the 'Enter' key to continue. ");
 
-                Console.WriteLine("\n");
-            }
+            if (Console.ReadLine() == "exit") endApp = true;
+
+            Console.WriteLine("\n");      
         }
     }
     calculator.Finish();
 }
 
 
-double GetNum()
+double GetNum(bool gettingSecondNum)
 {
     double userNum = double.NaN;
     bool validNum = false;
     do
     {
-        Console.WriteLine("\nEnter a number, and then press the 'Enter' key to continue.");
+        if (gettingSecondNum)
+        {
+            Console.WriteLine("\nPlease enter a second number.");
+        }else
+        {
+            Console.WriteLine("\nPlease enter a number.");
+
+        }
         Console.WriteLine("OR enter 'calc' to view the previous calculations and results.");
         readResult = Console.ReadLine();
         if (readResult != null)
@@ -132,15 +139,40 @@ double GetNum()
             if (readResult.StartsWith("calc"))
             {
                 calculator.ShowPreviousCalculations(calculator.RecentCalculations);
-                Console.WriteLine("That is the end of the recent calculations.");
-                Console.WriteLine("\t---------------------------\n");
+                Console.WriteLine("\n\t---------------------------\n");
 
+                Console.WriteLine("Type 'calculation #' to use the result of a previous calculation. IE, 'calculation 1'");
+                Console.WriteLine("OR enter any number (##) to continue as usual.");
+
+                readResult = Console.ReadLine();
+                if (readResult != null && readResult.StartsWith("calc"))
+                {
+                    string[] parseCalculationNumber = readResult.Split(' ');
+                    int previousCalculation = 0;
+                    if (int.TryParse(parseCalculationNumber[1],out previousCalculation))
+                    {
+                        if ((previousCalculation > 0) && (previousCalculation <= calculator.RecentCalculations.Count))
+                        {
+                            validNum = true;
+                            userNum = calculator.RecentCalculations[(previousCalculation - 1)].Result;
+                            Console.WriteLine($"Recording your number as {userNum}");
+
+                        } else
+                        {
+                            Console.WriteLine("Sorry, but we couldn't find a corresponding calculation result.");
+                        }
+                    } else
+                    {
+                        Console.WriteLine("Sorry, but I couldn't understand that number. Press the 'Enter' key to try again.");
+                    }
+                }
             }
-            else if (double.TryParse(readResult, out userNum))
+            
+            if (double.TryParse(readResult, out userNum))
             {
                 validNum = true;
             }
-            else
+            else if (readResult != null && !readResult.StartsWith("calc"))
             {
                 Console.WriteLine("Sorry, but I couldn't understand that number. Press the 'Enter' key to try again.");
                 Console.ReadLine();
