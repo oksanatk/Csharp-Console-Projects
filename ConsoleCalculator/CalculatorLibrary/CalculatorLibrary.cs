@@ -7,9 +7,12 @@ namespace CalculatorLibrary
     {
         JsonTextWriter writer;
         public int TimesUsed { get; private set; }
+        public List<Calculation> RecentCalculations { get; private set; }
         public Calculator()
         {
             TimesUsed = 0;
+            RecentCalculations = new List<Calculation>();
+
             StreamWriter logFile = File.CreateText("calculatorlog.json");
             logFile.AutoFlush = true;
             writer = new JsonTextWriter(logFile);
@@ -96,7 +99,9 @@ namespace CalculatorLibrary
             writer.WritePropertyName("Result");
             writer.WriteValue(result);
             writer.WriteEndObject();
+
             TimesUsed++;
+            RecentCalculations.Add(new Calculation (num1,op, result, num2));
 
             return result;
         }
@@ -107,5 +112,64 @@ namespace CalculatorLibrary
             writer.WriteEndObject();
             writer.Close();
         }
+
+        public void ClearCalculations()
+        {
+            RecentCalculations.Clear();
+        }
+
+        public void ShowPreviousCalculations(List<Calculation> previousCalcs)
+        {
+            if (previousCalcs.Count > 0)
+            {
+                //format calculations
+                Console.WriteLine();
+                foreach (Calculation calc in previousCalcs)
+                {
+                    if (calc.Num2.Equals(double.NaN))
+                    {
+                        Console.WriteLine("{0} = {1}", OperationVisualizer(calc.Operation, calc.Num1), calc.Result);
+                    }
+                    else
+                    {
+                        Console.WriteLine("{0} {1} {2} = {3}", calc.Num1, OperationVisualizer(calc.Operation), calc.Num2, calc.Result);
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("There are no previous operations to view.");
+            }
+        }
+
+        public string OperationVisualizer(string operation, double singleNumberOperationNum=double.NaN)
+        {
+            switch (operation)
+            {
+                case "add":
+                    return "+";
+                case "sub":
+                    return "-";
+                case "mult":
+                    return "*";
+                case "div":
+                    return "/";
+                case "sq":
+                    return $"\u221A{singleNumberOperationNum}";
+                case "pow":
+                    return "^";
+                case "10x":
+                    return $"10 * {singleNumberOperationNum}";
+                case "sin":
+                    return $"sin({singleNumberOperationNum})";
+                case "cos":
+                    return $"cos({singleNumberOperationNum})";
+                case "tan":
+                    return $"tan({singleNumberOperationNum})";
+                default:
+                    return "";
+            }
+        }
     }
 }
+public record Calculation (double Num1, string Operation, double Result, double Num2 = double.NaN);
