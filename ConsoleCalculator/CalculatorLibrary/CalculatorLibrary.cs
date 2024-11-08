@@ -1,5 +1,5 @@
-﻿using System.Diagnostics;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using Spectre.Console;
 
 namespace CalculatorLibrary
 {
@@ -119,30 +119,40 @@ namespace CalculatorLibrary
             RecentCalculations.Clear();
         }
 
-        public void ShowPreviousCalculations(List<Calculation> previousCalcs)
+        public Panel ShowPreviousCalculations(List<Calculation> previousCalcs)
         {                
             Console.WriteLine();
             if (previousCalcs.Count > 0)
             {
+                Table table = new Table();
+                table.AddColumns("Calculation #", "Result");
+
                 int counter = 1;
                 foreach (Calculation calc in previousCalcs)
                 {
-                    Console.Write($"Calculation {counter}:  ");
                     if (calc.Num2.Equals(double.NaN))
                     {
-                        Console.WriteLine("{0} = {1}", OperationVisualizer(calc.Operation, calc.Num1), calc.Result);
+                        table.AddRow($"Calculation {counter}", $"{OperationVisualizer(calc.Operation,calc.Num1)} = [bold yellow]{calc.Result}[/]");
                     }
                     else
                     {
-                        Console.WriteLine("{0} {1} {2} = {3}", calc.Num1, OperationVisualizer(calc.Operation), calc.Num2, calc.Result);
+                        table.AddRow($"Calculation {counter}", $"{calc.Num1} {OperationVisualizer(calc.Operation)} {calc.Num2} = [bold yellow]{calc.Result}[/]");
                     }
                     counter++;
                 }
+            return new Panel(table)
+                        .Header("[bold yellow]Previous Calculations[/]")
+                        .RoundedBorder()
+                        .Padding(1,1,1,1);
             }
             else
             {
-                Console.WriteLine("There are no previous operations to view.");
+                return new Panel("There are no previous calculations to view.")
+                            .Header("[bold yellow]Previous Calculations[/]")
+                            .RoundedBorder()
+                            .Padding(1,1,1,1);
             }
+
         }
 
         public string OperationVisualizer(string operation, double singleNumberOperationNum=double.NaN)

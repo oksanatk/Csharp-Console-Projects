@@ -1,9 +1,7 @@
 ﻿using Spectre.Console;
-using System.Text.RegularExpressions;
 using CalculatorLibrary;
 
 string? readResult;
-//string[] validMenuChoices = new string[] { "add", "sub", "mult", "div", "sq", "pow", "10x", "sin", "cos", "tan", "exit"};
 string[] validOperations = new string[] { "add", "sub", "mult", "div", "sq", "pow", "10x", "sin", "cos", "tan" };
 string[] singleNumberOperations = new string[] { "sq", "10x", "sin", "cos", "tan" }; 
 Calculator calculator = new Calculator();
@@ -24,26 +22,16 @@ void ShowMainMenu()
         do
         {
             Console.Clear();
-            Console.WriteLine("Console Calculator in C#");
-            Console.WriteLine("------------------------\n");
+            AnsiConsole.MarkupLine("[bold yellow]Console Calculator in C#[/]");
+            AnsiConsole.MarkupLine("[bold yellow]------------------------\n[/]");
 
-            Console.WriteLine("Choose an operation from the following list:\n");
-            Console.WriteLine("\tadd - Add");
-            Console.WriteLine("\tsub - Subtract");
-            Console.WriteLine("\tmult - Multiply");
-            Console.WriteLine("\tdiv - Divide");
-            Console.WriteLine("\tsq - Square Root of a Number");
-            Console.WriteLine("\tpow - Raise to the Power");
-            Console.WriteLine("\t10x - 10");
-            Console.WriteLine("\tsin - Sin of a Number");
-            Console.WriteLine("\tcos - Cos of a Number");
-            Console.WriteLine("\ttan - Tangent of a Number");
-
-            Console.WriteLine("OR \nEnter 'num' to see the number of times the calculator has been used.");
-            Console.WriteLine("Enter 'calc' to see the previous calculations");
-            Console.WriteLine("Enter 'exit' to exit the app.");
-            Console.Write("\nYour option? ");
-
+            Panel operationsPanel = ShowOperationsPanel();
+            AnsiConsole.Write(operationsPanel);
+            
+            AnsiConsole.MarkupLine("[bold yellow]OR[/] \nEnter [aqua]num[/] to see the number of times the calculator has been used.");
+            AnsiConsole.MarkupLine("Enter [aqua]calc[/] to see the previous calculations");
+            AnsiConsole.MarkupLine("Enter [aqua]exit[/] to exit the app.");
+            AnsiConsole.Markup("\n[bold yellow]Your option? [/]");
 
             readResult = Console.ReadLine();
             if (readResult != null)
@@ -55,17 +43,16 @@ void ShowMainMenu()
 
             else if (op == "num") 
             { 
-                Console.WriteLine("\nThe calculator has been used {0} times.", calculator.TimesUsed);
-                Console.WriteLine("\nPress the 'Enter' key to continue back to the main menu.");
+                AnsiConsole.MarkupLine("\nThe calculator has been used [bold yellow]{0}[/] times.", calculator.TimesUsed);
+                AnsiConsole.MarkupLine("\nPress the [yellow]Enter[/] key to continue back to the main menu.");
                 Console.ReadLine();
             }
-
             else if (op == "calc")
             {
                 Console.Clear();
-                Console.WriteLine("You are choosing to view previous operations.");
-                calculator.ShowPreviousCalculations(calculator.RecentCalculations);
-                Console.WriteLine("\nEnter 'clear' to clear the history of recent calculations, or just press the 'Enter' key to continue.");
+                AnsiConsole.MarkupLine("You are choosing to view previous operations.");
+                AnsiConsole.Write(calculator.ShowPreviousCalculations(calculator.RecentCalculations));
+                AnsiConsole.MarkupLine("\nEnter [aqua]clear[/] to clear the history of recent calculations, or just press the [yellow]Enter[/] key to continue.");
 
                 readResult = Console.ReadLine();
                 if (readResult != null)
@@ -79,12 +66,11 @@ void ShowMainMenu()
             }
             else if (validOperations.Contains(op))
             {
-                // valid operator, call function?
-                Console.WriteLine("You're choosing to {0} operation.", op);
+                AnsiConsole.MarkupLine("You're choosing the [bold yellow]{0}[/] operation.", op);
             }
             else
             {
-                Console.WriteLine("I'm sorry, but I didn't understand that operator. Press Enter to try again.");
+                AnsiConsole.MarkupLine("I'm sorry, but I didn't understand that operator. Press Enter to try again.");
                 Console.ReadLine();
             }
         } while (!validOperations.Contains(op) && op !="exit");
@@ -102,21 +88,20 @@ void ShowMainMenu()
             result = calculator.DoOperation(num1, num2, op);
             if (double.IsNaN(result))
             {
-                Console.WriteLine("This operation results in a mathematical error.");
+                AnsiConsole.MarkupLine("[bold maroon]This operation results in a mathematical error.[/]");
             }
-            else Console.WriteLine("Your result is: {0}\n", result);
+            else AnsiConsole.MarkupLine("Your result is: [bold yellow]{0}[/]\n", result);
 
-            Console.WriteLine("\t------------------------\n");
-            Console.Write("Enter 'exit' to close the app, or press the 'Enter' key to continue. ");
+            AnsiConsole.MarkupLine("\t------------------------\n");
+            AnsiConsole.Markup("Enter [yellow]exit[/] to close the app, or press the 'Enter' key to continue. ");
 
             if (Console.ReadLine() == "exit") endApp = true;
 
-            Console.WriteLine("\n");      
+            AnsiConsole.MarkupLine("\n");      
         }
     }
     calculator.Finish();
 }
-
 
 double GetNum(bool gettingSecondNum)
 {
@@ -126,23 +111,23 @@ double GetNum(bool gettingSecondNum)
     {
         if (gettingSecondNum)
         {
-            Console.WriteLine("\nPlease enter a second number.");
+            AnsiConsole.MarkupLine("\nPlease enter a second number.");
         }else
         {
-            Console.WriteLine("\nPlease enter a number.");
+            AnsiConsole.MarkupLine("\nPlease enter a number.");
 
         }
-        Console.WriteLine("OR enter 'calc' to view the previous calculations and results.");
+        AnsiConsole.MarkupLine("OR enter [aqua]calc[/] to view the previous calculations and results.");
         readResult = Console.ReadLine();
         if (readResult != null)
         {
             if (readResult.StartsWith("calc"))
             {
-                calculator.ShowPreviousCalculations(calculator.RecentCalculations);
-                Console.WriteLine("\n\t---------------------------\n");
+                AnsiConsole.Write(calculator.ShowPreviousCalculations(calculator.RecentCalculations));
+                AnsiConsole.MarkupLine("[yellow]\n\t---------------------------\n[/]");
 
-                Console.WriteLine("Type 'calculation #' to use the result of a previous calculation. IE, 'calculation 1'");
-                Console.WriteLine("OR enter any number (##) to continue as usual.");
+                AnsiConsole.MarkupLine("Type [yellow]calculation #[/] to use the result of a previous calculation. IE, [yellow]calculation 1[/]");
+                AnsiConsole.MarkupLine("OR enter any number (##) to use it instead.");
 
                 readResult = Console.ReadLine();
                 if (readResult != null && readResult.StartsWith("calc"))
@@ -153,17 +138,17 @@ double GetNum(bool gettingSecondNum)
                     {
                         if ((previousCalculation > 0) && (previousCalculation <= calculator.RecentCalculations.Count))
                         {
-                            validNum = true;
                             userNum = calculator.RecentCalculations[(previousCalculation - 1)].Result;
-                            Console.WriteLine($"Recording your number as {userNum}");
+                            AnsiConsole.MarkupLine($"Recording your number as [bold yellow]{userNum}[/]");
+                            return userNum;
 
                         } else
                         {
-                            Console.WriteLine("Sorry, but we couldn't find a corresponding calculation result.");
+                            AnsiConsole.MarkupLine("[maroon]Sorry, but we couldn't find a corresponding calculation result.[/]");
                         }
                     } else
                     {
-                        Console.WriteLine("Sorry, but I couldn't understand that number. Press the 'Enter' key to try again.");
+                        AnsiConsole.MarkupLine("[maroon]Sorry, but I couldn't understand that number. Press the [yellow]Enter[/] key to try again.[/]");
                     }
                 }
             }
@@ -174,12 +159,36 @@ double GetNum(bool gettingSecondNum)
             }
             else if (readResult != null && !readResult.StartsWith("calc"))
             {
-                Console.WriteLine("Sorry, but I couldn't understand that number. Press the 'Enter' key to try again.");
+                AnsiConsole.MarkupLine("[maroon]Sorry, but I couldn't understand that number. Press the [yellow]Enter[/] key to try again.[/]");
                 Console.ReadLine();
             }
         }
     } while (!validNum);
     return userNum;
+}
+
+Panel ShowOperationsPanel()
+{
+    Grid grid = new Grid();
+    grid.AddColumn();
+
+    grid.AddRow("[aqua]add[/]  - Add");
+    grid.AddRow("[aqua]sub[/]  - Subtract");
+    grid.AddRow("[aqua]mult[/] - Multiply");
+    grid.AddRow("[aqua]div[/]  - Divide");
+    grid.AddRow("[aqua]sq[/]   - Square Root of a Number");
+    grid.AddRow("[aqua]pow[/]  - Raise to the Power");
+    grid.AddRow("[aqua]10x[/]  - 10");
+    grid.AddRow("[aqua]sin[/]  - Sine of a Number");
+    grid.AddRow("[aqua]cos[/]  - Cosine of a Number");
+    grid.AddRow("[aqua]tan[/]  - Tangent of a Number");
+
+    return new Panel(grid)
+    {
+        Header = new PanelHeader("[yellow]Choose an Operation:[/]"),
+        Border = BoxBorder.Rounded,
+        Padding = new Padding(1)
+    };
 }
 
 
