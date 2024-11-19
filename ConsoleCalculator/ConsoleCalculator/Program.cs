@@ -355,7 +355,11 @@ async Task<String> GetVoiceInput()
             AnsiConsole.MarkupLine($"[bold yellow]Recognized Voice Input[/]: {userVoiceInput}");
 
             userVoiceInput = userVoiceInput.Trim().ToLower();
-            userVoiceInput = Regex.Replace(userVoiceInput, @"[^a-z0-9\s-]", "");
+            if (userVoiceInput.EndsWith("."))
+            {
+                userVoiceInput = userVoiceInput.Substring(0, userVoiceInput.Length - 1);
+            }
+            userVoiceInput = Regex.Replace(userVoiceInput, @"[^a-z0-9\s-.]", "");
             await Task.Delay(1000);
 
             return userVoiceInput;
