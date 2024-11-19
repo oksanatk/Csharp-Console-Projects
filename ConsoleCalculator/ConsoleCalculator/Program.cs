@@ -38,19 +38,25 @@ async Task ShowMainMenu(bool voiceMode)
             AnsiConsole.MarkupLine("[bold yellow]Console Calculator in C#[/]");
             AnsiConsole.MarkupLine("[bold yellow]------------------------\n[/]");
 
-            Panel operationsPanel = ShowOperationsPanel();
+            Panel operationsPanel = ShowOperationsPanel(voiceMode);
             AnsiConsole.Write(operationsPanel);
-            
-            AnsiConsole.MarkupLine("[bold yellow]OR[/] \nEnter [aqua]num[/] to see the number of times the calculator has been used.");
-            AnsiConsole.MarkupLine("Enter [aqua]calc[/] to see the previous calculations");
-            AnsiConsole.MarkupLine("Enter [aqua]exit[/] to exit the app.");
-            AnsiConsole.Markup("\n[bold yellow]Your option? [/]");
 
             if (voiceMode)
             {
+                AnsiConsole.MarkupLine("[bold yellow]OR[/] \nSay [aqua]number[/] to see the number of times the calculator has been used.");
+                AnsiConsole.MarkupLine("Say [aqua]calculations[/] to see the previous calculations");
+                AnsiConsole.MarkupLine("Say [aqua]exit[/] to exit the app.");
+                AnsiConsole.Markup("\n[bold yellow]Your option? [/]");
+
                 op = await GetVoiceInput();
+                op = ParseVoiceOperator(op);
             } else
             {
+                AnsiConsole.MarkupLine("[bold yellow]OR[/] \nEnter [aqua]num[/] to see the number of times the calculator has been used.");
+                AnsiConsole.MarkupLine("Enter [aqua]calc[/] to see the previous calculations");
+                AnsiConsole.MarkupLine("Enter [aqua]exit[/] to exit the app.");
+                AnsiConsole.Markup("\n[bold yellow]Your option? [/]");
+
                 readResult = Console.ReadLine();
                 if (readResult != null)
                 {
@@ -66,8 +72,7 @@ async Task ShowMainMenu(bool voiceMode)
                 if (voiceMode)
                 {
                     AnsiConsole.MarkupLine("\nPlease wait a few seconds to continue back to the main menu.");
-                    Thread.Sleep(3000);
-                    //TODO test above
+                    Thread.Sleep(3500);
                 } else
                 {
                     AnsiConsole.MarkupLine("\nPress the [yellow]Enter[/] key to continue back to the main menu.");
@@ -75,7 +80,7 @@ async Task ShowMainMenu(bool voiceMode)
                 }
 
             }
-            else if (op == "calc")
+            else if (op.StartsWith("calc"))
             {
                 Console.Clear();
                 AnsiConsole.MarkupLine("You are choosing to view previous operations.");
@@ -83,12 +88,12 @@ async Task ShowMainMenu(bool voiceMode)
 
                 if (voiceMode)
                 {
-                    AnsiConsole.MarkupLine("\nSay [aqua]clear[/] to clear the history of recent calculations, or say [yellow]Continue[/] to continue.");
+                    AnsiConsole.MarkupLine("\nSay [aqua]Clear[/] to clear the history of recent calculations, or say [yellow]Continue[/] to continue.");
                     readResult = GetVoiceInput().Result;
                     //TODO test above
                 } else
                 {
-                    AnsiConsole.MarkupLine("\nEnter [aqua]clear[/] to clear the history of recent calculations, or just press the [yellow]Enter[/] key to continue.");
+                    AnsiConsole.MarkupLine("\nEnter [aqua]Clear[/] to clear the history of recent calculations, or just press the [yellow]Enter[/] key to continue.");
 
                     readResult = Console.ReadLine();
                     if (readResult != null)
@@ -97,7 +102,7 @@ async Task ShowMainMenu(bool voiceMode)
                     }
                 }
 
-                if (readResult != null && readResult.StartsWith("c"))
+                if (readResult != null && readResult.Contains("clear"))
                 {
                     calculator.ClearCalculations();
                 } 
@@ -110,7 +115,8 @@ async Task ShowMainMenu(bool voiceMode)
             {
                 if (voiceMode)
                 {
-                    AnsiConsole.MarkupLine("[maroon]I'm sorry, but I didn't understand that operator. Press try again.[/]");
+                    AnsiConsole.MarkupLine("[maroon]I'm sorry, but I didn't understand that operator. Press try again in a few seconds.[/]");
+                    Thread.Sleep(2500);
                 } else
                 {
                     AnsiConsole.MarkupLine("[maroon]I'm sorry, but I didn't understand that operator. Press [yellow]Enter[/] to try again.[/]");
@@ -127,7 +133,7 @@ async Task ShowMainMenu(bool voiceMode)
             // if not single-num operation, get num2
             if (!singleNumberOperations.Contains(op))
             {
-                num2 = GetNum(true, voice);
+                num2 = GetNum(true, voiceMode);
             }
 
             result = calculator.DoOperation(num1, num2, op);
@@ -135,16 +141,18 @@ async Task ShowMainMenu(bool voiceMode)
             {
                 AnsiConsole.MarkupLine("[bold maroon]This operation results in a mathematical error.[/]");
             }
-            else AnsiConsole.MarkupLine("Your result is: [bold yellow]{0}[/]\n", result);
+            else AnsiConsole.MarkupLine("\nYour result is: [bold yellow]{0}[/]\n", result);
 
             AnsiConsole.MarkupLine("\t------------------------\n");
-            AnsiConsole.Markup("Enter [yellow]exit[/] to close the app, or press the 'Enter' key to continue. ");
+
 
             if (voiceMode)
             {
+                AnsiConsole.Markup("Say [yellow]exit[/] to close the app, or say [bold yellow]Continue[/]. ");
                 if (GetVoiceInput().Result == "exit") endApp = true;
             } else
             {
+                AnsiConsole.Markup("Enter [yellow]exit[/] to close the app, or press the [bold yellow]Enter[/] key to continue. ");
                 if (Console.ReadLine() == "exit") endApp = true;
             }              
             AnsiConsole.MarkupLine("\n");      
@@ -153,27 +161,69 @@ async Task ShowMainMenu(bool voiceMode)
     calculator.Finish();
 }
 
+string ParseVoiceOperator(string voiceOperator)
+{
+    switch (voiceOperator)
+    {
+        case "addition":
+            return "add";
+
+        case string op when voiceOperator.StartsWith("sub"):
+            return "sub";
+        case string op when voiceOperator.StartsWith("mult"):
+            return "mult";
+        case string op when voiceOperator.StartsWith("div"):
+            return "div";
+        case string op when voiceOperator.Contains("square"):
+            return "sq";
+        case string op when voiceOperator.Contains("pow"):
+            return "pow";
+        case string op when ((voiceOperator.Contains("10") || voiceOperator.Contains("ten")) && voiceOperator.Contains("x")):
+            return "10x";
+        // "sine" operator commonly heard by speech recognizer as "sign"
+        case "sign":
+            return "sin";
+        case string op when voiceOperator.StartsWith("si"):
+            return "sin";
+        case "cosine":
+            return "cos";
+        case string op when voiceOperator.StartsWith("tan"):
+            return "tan";
+
+        default:
+            return voiceOperator;
+    }
+}
+
 double GetNum(bool gettingSecondNum, bool voiceMode)
 {
     double userNum = double.NaN;
     bool validNum = false;
     do
     {
-        if (gettingSecondNum)
-        {
-            AnsiConsole.MarkupLine("\nPlease enter a second number.");
-        }else
-        {
-            AnsiConsole.MarkupLine("\nPlease enter a number.");
-
-        }
-        AnsiConsole.MarkupLine("OR enter [aqua]calc[/] to view the previous calculations and results.");
-
         if (voiceMode)
         {
+            if (gettingSecondNum)
+            {
+                AnsiConsole.MarkupLine("\nPlease say a second number to enter.");
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("\nPlease say a number to enter.");
+            }
+            AnsiConsole.MarkupLine("OR say [aqua]calculations[/] to view the previous calculations and results.");
             readResult = GetVoiceInput().Result;
         } else
         {
+            if (gettingSecondNum)
+            {
+                AnsiConsole.MarkupLine("\nPlease enter a second number.");
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("\nPlease enter a number.");
+            }
+            AnsiConsole.MarkupLine("OR enter [aqua]calc[/] to view the previous calculations and results.");
             readResult = Console.ReadLine();
         }
 
@@ -184,14 +234,17 @@ double GetNum(bool gettingSecondNum, bool voiceMode)
                 AnsiConsole.Write(calculator.ShowPreviousCalculations(calculator.RecentCalculations));
                 AnsiConsole.MarkupLine("[yellow]\n\t---------------------------\n[/]");
 
-                AnsiConsole.MarkupLine("Type [yellow]calculation #[/] to use the result of a previous calculation. IE, [yellow]calculation 1[/]");
-                AnsiConsole.MarkupLine("OR enter any number (##) to use it instead.");
-
                 if (voiceMode)
                 {
+                    AnsiConsole.MarkupLine("Say [yellow]calculation #[/] to use the result of a previous calculation. IE, [yellow]calculation 1[/]");
+                    AnsiConsole.MarkupLine("OR say any number (##) to use it instead.");
+
                     readResult = GetVoiceInput().Result;
                 } else
                 {
+                    AnsiConsole.MarkupLine("Type [yellow]calculation #[/] to use the result of a previous calculation. IE, [yellow]calculation 1[/]");
+                    AnsiConsole.MarkupLine("OR enter any number (##) to use it instead.");
+
                     readResult = Console.ReadLine();
                 }
 
@@ -238,28 +291,51 @@ double GetNum(bool gettingSecondNum, bool voiceMode)
     return userNum;
 }
 
-Panel ShowOperationsPanel()
+Panel ShowOperationsPanel(bool voiceMode)
 {
     Grid grid = new Grid();
     grid.AddColumn();
 
-    grid.AddRow("[aqua]add[/]  - Add");
-    grid.AddRow("[aqua]sub[/]  - Subtract");
-    grid.AddRow("[aqua]mult[/] - Multiply");
-    grid.AddRow("[aqua]div[/]  - Divide");
-    grid.AddRow("[aqua]sq[/]   - Square Root of a Number");
-    grid.AddRow("[aqua]pow[/]  - Raise to the Power");
-    grid.AddRow("[aqua]10x[/]  - 10");
-    grid.AddRow("[aqua]sin[/]  - Sine of a Number");
-    grid.AddRow("[aqua]cos[/]  - Cosine of a Number");
-    grid.AddRow("[aqua]tan[/]  - Tangent of a Number");
-
-    return new Panel(grid)
+    if (voiceMode)
     {
-        Header = new PanelHeader("[yellow]Choose an Operation:[/]"),
-        Border = BoxBorder.Rounded,
-        Padding = new Padding(1)
-    };
+        grid.AddRow("[aqua]add[/]      - Add");
+        grid.AddRow("[aqua]subtract[/] - Subtract");
+        grid.AddRow("[aqua]multiply[/] - Multiply");
+        grid.AddRow("[aqua]divide[/]   - Divide");
+        grid.AddRow("[aqua]square[/]   - Square Root of a Number");
+        grid.AddRow("[aqua]power[/]    - Raise to the Power");
+        grid.AddRow("[aqua]10x[/]      - Multiply by 10");
+        grid.AddRow("[aqua]sine[/]     - Sine of a Number");
+        grid.AddRow("[aqua]cosine[/]   - Cosine of a Number");
+        grid.AddRow("[aqua]tangent[/]  - Tangent of a Number");
+
+        return new Panel(grid)
+        {
+            Header = new PanelHeader("[yellow]Choose an Operation:[/]"),
+            Border = BoxBorder.Rounded,
+            Padding = new Padding(1)
+        };
+    }
+    else
+    {
+        grid.AddRow("[aqua]add[/]  - Add");
+        grid.AddRow("[aqua]sub[/]  - Subtract");
+        grid.AddRow("[aqua]mult[/] - Multiply");
+        grid.AddRow("[aqua]div[/]  - Divide");
+        grid.AddRow("[aqua]sq[/]   - Square Root of a Number");
+        grid.AddRow("[aqua]pow[/]  - Raise to the Power");
+        grid.AddRow("[aqua]10x[/]  - 10");
+        grid.AddRow("[aqua]sin[/]  - Sine of a Number");
+        grid.AddRow("[aqua]cos[/]  - Cosine of a Number");
+        grid.AddRow("[aqua]tan[/]  - Tangent of a Number");
+
+        return new Panel(grid)
+        {
+            Header = new PanelHeader("[yellow]Choose an Operation:[/]"),
+            Border = BoxBorder.Rounded,
+            Padding = new Padding(1)
+        };
+    }
 }
 
 async Task<String> GetVoiceInput()
@@ -267,6 +343,7 @@ async Task<String> GetVoiceInput()
     string userVoiceInput = "";
     using SpeechRecognizer recognizer = new SpeechRecognizer(speechConfig);
     RecognitionResult recognizedInput;
+    bool unrecognizedMessagePrinted = false;
 
     do
     {
@@ -275,18 +352,28 @@ async Task<String> GetVoiceInput()
         if (recognizedInput.Reason == ResultReason.RecognizedSpeech)
         {
             userVoiceInput = recognizedInput.Text;
-            AnsiConsole.MarkupLine($"[bold yellow]Recognizer Voice Input[/]: {userVoiceInput}");
+            AnsiConsole.MarkupLine($"[bold yellow]Recognized Voice Input[/]: {userVoiceInput}");
 
             userVoiceInput = userVoiceInput.Trim().ToLower();
             userVoiceInput = Regex.Replace(userVoiceInput, @"[^a-z0-9\s-]", "");
+            await Task.Delay(1000);
 
             return userVoiceInput;
-        } 
+        }
         else if (recognizedInput.Reason == ResultReason.Canceled)
         {
             AnsiConsole.MarkupLine($"[maroon]SPEECH RECOGNITION CANCELLED:[/] {CancellationDetails.FromResult(recognizedInput)}\n");
             endApp = true;
             return "exit";
+        } 
+        else if (recognizedInput.Reason == ResultReason.NoMatch)
+        {
+            // print error message, but only once.
+            if (!unrecognizedMessagePrinted)
+            {
+                AnsiConsole.MarkupLine("\n[maroon]I'm sorry, I didn't understand that input.[/]");
+                unrecognizedMessagePrinted = true;
+            } 
         }
         else
         {
