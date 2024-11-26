@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.CognitiveServices.Speech;
 using System.Text.RegularExpressions;
+using System.ComponentModel.DataAnnotations;
 
 string? readResult;
 bool userSpeechInput = false;
@@ -49,7 +50,7 @@ void ShowMainMenu(bool voiceMode)
         switch (userMenuOption)
         {
             case "create":
-                CreateNewHabit();
+                CreateNewHabit(currentHabits, voiceMode);
                 // do i need a function to read the existing habits from the database and turn it into a string?
                 break;
             case "edit":
@@ -82,7 +83,83 @@ void ShowMainMenu(bool voiceMode)
 
 }
 
-void CreateNewHabit() { }
+void CreateNewHabit(List<String> currentHabits, bool voiceMode)
+{
+    string userHabitInput = "";
+    string userUnitOfMeasure = "";
+    bool validHabitSelected = false;
+
+    Console.WriteLine("\n\t Here are the current habits you are logging: ");
+    currentHabits.ForEach(h => Console.WriteLine(h));
+    while (!validHabitSelected)
+    {
+        if (voiceMode)
+        {
+            Console.WriteLine("\nPlease say the name of a new habit you would like to track.");
+            userHabitInput = GetVoiceInput().Result;
+        }
+        else
+        {
+            string? readResult = Console.ReadLine();
+            if (readResult != null)
+            {
+                userHabitInput = readResult.Trim().ToLower();
+            }
+        }
+        if (!currentHabits.Contains(userHabitInput))
+        {
+            validHabitSelected = true;
+            Console.WriteLine($"You are choosing to create a new habit called {userHabitInput}.");
+            Console.WriteLine("What would you like to choose to be the unit of measure?");
+
+            if (voiceMode)
+            {
+                Console.WriteLine($"\nPlease say the unit of measure you would like to use to track your {userHabitInput} habit.");
+                userUnitOfMeasure = GetVoiceInput().Result;
+            }
+            else
+            {
+                string? readResult = Console.ReadLine();
+                if (readResult != null)
+                {
+                    userUnitOfMeasure = readResult.Trim().ToLower();
+                }
+            }
+            Console.WriteLine($"You are choosing {userUnitOfMeasure} to be the unit of measure.");
+        }
+        else
+        {
+            if (voiceMode)
+            {
+                Console.WriteLine("I'm sorry, but you already have a habit with that name. Please try again.");
+            }
+            else
+            {
+                Console.WriteLine("I'm sorry, but you already have a habit with that name. Please press 'Enter' to try again.");
+                Console.ReadLine();
+            }
+        }
+    }
+
+    using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+    {
+        connection.Open();
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandText =
+            @"
+                CREATE TABLE $userHabitInput (
+                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                 $userUnitOfMeasure INTEGER NOT NULL,
+                 date_only TEXT NOT NULL
+                );  
+            ";
+        command.Parameters.AddWithValue("$userHabitInput",userHabitInput);
+        command.Parameters.AddWithValue("$userUnitOfMeasure", userUnitOfMeasure);
+        command.ExecuteNonQuery();
+    }
+
+    Console.WriteLine($"New habit called {userHabitInput} with the unit of measure {userUnitOfMeasure} has been created!");
+}
 
 void EditExistingHabit() { }
 
