@@ -1,7 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.CognitiveServices.Speech;
 using System.Text.RegularExpressions;
-using System.ComponentModel.DataAnnotations;
 
 string? readResult;
 bool userSpeechInput = false;
@@ -12,8 +11,9 @@ if (!File.Exists("Habits.db")) { File.Create("Habits.db"); }
 
 if (args.Contains("--voice-input")) { userSpeechInput = true; }
 
+
+ReadRecordsFromHabit("sample_habit1");
 //ShowMainMenu(userSpeechInput);
-ReadHabitsFromFile();
 
 void ShowMainMenu(bool voiceMode)
 {
@@ -54,7 +54,7 @@ void ShowMainMenu(bool voiceMode)
                 // do i need a function to read the existing habits from the database and turn it into a string?
                 break;
             case "edit":
-                EditExistingHabit();
+                EditExistingHabit(currentHabits, voiceMode);
                 break;
             case "delete":
                 DeleteAHabit();
@@ -91,6 +91,7 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
 
     Console.WriteLine("\n\t Here are the current habits you are logging: ");
     currentHabits.ForEach(h => Console.WriteLine(h));
+    Console.WriteLine("\t--------------------\n");
     while (!validHabitSelected)
     {
         if (voiceMode)
@@ -161,7 +162,70 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
     Console.WriteLine($"New habit called {userHabitInput} with the unit of measure {userUnitOfMeasure} has been created!");
 }
 
-void EditExistingHabit() { }
+void EditExistingHabit(List<String> currentHabits, bool voiceMode)
+{
+    string userHabitInput = "";
+    string userEditOrUpdateSelection = "";
+    bool validHabitSelected = false;
+    bool validAddOrEditOption = false;
+
+    Console.WriteLine("\n\t Here are the current habits you are logging: ");
+    currentHabits.ForEach(h => Console.WriteLine(h));
+    Console.WriteLine("\t--------------------\n");
+
+    // select which habit to modify, and whether user would prefer to add a new entry or update an existing one. 
+
+    while (!validHabitSelected)
+    {
+        Console.WriteLine("Please select which of the above habits you'd like to modify.");
+        if (voiceMode)
+        {
+            userHabitInput = GetVoiceInput().Result;
+        }
+        else
+        {
+            string? readResult = Console.ReadLine();
+            if (readResult != null)
+            {
+                userHabitInput = readResult;
+            }
+        }
+        if (currentHabits.Contains(userHabitInput))
+        {
+            validHabitSelected = true;
+            // TODO view all records of that habit?
+            ReadRecordsFromHabit(userHabitInput);
+               
+            while (!validAddOrEditOption)
+            {
+                Console.WriteLine($"Great! Please select whether you'd like to 'update' or 'add' a new record.");
+                if (voiceMode)
+                {
+                    userEditOrUpdateSelection = GetVoiceInput().Result;
+                }
+                else
+                {
+                    string? readResult = Console.ReadLine();
+                    if (readResult != null)
+                    {
+                        userEditOrUpdateSelection = readResult.Trim().ToLower();
+                    }
+                }
+                if (userEditOrUpdateSelection == "update")
+                {
+                    /// METHOD HERE TODO
+                } else if (userEditOrUpdateSelection == "add")
+                {
+                    /// TODO METHOD HERE
+                } else
+                {
+                    Console.WriteLine("I'm sorry, but I didn't understand that. Please try again.");
+                }
+            }
+        }
+
+    }
+}
 
 void DeleteAHabit() { }
 
@@ -191,6 +255,37 @@ List<String> ReadHabitsFromFile()
         }
     }
     return currentHabits;
+}
+
+void ReadRecordsFromHabit(string habit)
+{
+    Regex.Replace(habit, @"[^a-zA-Z0-9_]", ""); // remove non-alphanumeric to reduce risk of sql injection
+    string commandText = $"SELECT * FROM {habit};"; // cannot parameterize table names, must format command string manually
+
+    using (var connection = new SqliteConnection("DataSource=Habits.db"))
+    {
+        connection.Open();
+        var command = connection.CreateCommand();
+        command.CommandText = commandText;
+
+        using (SqliteDataReader reader = command.ExecuteReader())
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                Console.Write($"{reader.GetName(i)}\t");
+            }
+
+            Console.WriteLine();
+            while (reader.Read())
+            {         
+                // TODO - can iterate through each row as for(int i=0;i++;i<reader.FieldCount)
+                // then store in a list<list<string>> for use / display later
+                Console.WriteLine($"{reader.GetString(0)}\t{reader.GetString(1)}\t{reader.GetString(2)}");
+
+            }
+        }
+    }
+
 }
 
 
