@@ -13,7 +13,7 @@ if (args.Contains("--voice-input")) { userSpeechInput = true; }
 
 
 ReadRecordsFromHabit("sample_habit1");
-//ShowMainMenu(userSpeechInput);
+ShowMainMenu(userSpeechInput);
 
 void ShowMainMenu(bool voiceMode)
 {
@@ -50,16 +50,20 @@ void ShowMainMenu(bool voiceMode)
         switch (userMenuOption)
         {
             case "create":
+            case "1":
                 CreateNewHabit(currentHabits, voiceMode);
                 // do i need a function to read the existing habits from the database and turn it into a string?
                 break;
             case "edit":
+            case "2":
                 EditExistingHabit(currentHabits, voiceMode);
                 break;
             case "delete":
+            case "3":
                 DeleteAHabit();
                 break;
             case "report":
+            case "4":
                 ViewHabitReport();
                 break;
             case "exit":
@@ -78,9 +82,7 @@ void ShowMainMenu(bool voiceMode)
                 }
                 break;
         }
-
     }
-
 }
 
 void CreateNewHabit(List<String> currentHabits, bool voiceMode)
@@ -89,7 +91,7 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
     string userUnitOfMeasure = "";
     bool validHabitSelected = false;
 
-    Console.WriteLine("\n\t Here are the current habits you are logging: ");
+    Console.WriteLine("\nHere are the current habits you are logging: \n");
     currentHabits.ForEach(h => Console.WriteLine(h));
     Console.WriteLine("\t--------------------\n");
     while (!validHabitSelected)
@@ -101,6 +103,7 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
         }
         else
         {
+            Console.WriteLine("\nPlease type the name of a new habit you would like to track.");
             string? readResult = Console.ReadLine();
             if (readResult != null)
             {
@@ -110,7 +113,7 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
         if (!currentHabits.Contains(userHabitInput))
         {
             validHabitSelected = true;
-            Console.WriteLine($"You are choosing to create a new habit called {userHabitInput}.");
+            Console.WriteLine($"\nYou are choosing to create a new habit called {userHabitInput}.");
             Console.WriteLine("What would you like to choose to be the unit of measure?");
 
             if (voiceMode)
@@ -146,16 +149,22 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
     {
         connection.Open();
         SqliteCommand command = connection.CreateCommand();
+
+        userHabitInput = Regex.Replace(userHabitInput, @"[\s]","_");
+        userHabitInput = Regex.Replace(userHabitInput, @"[^a-zA-Z0-9_]", "");
+
+        userUnitOfMeasure = Regex.Replace(userUnitOfMeasure, @"[\s]", "_");
+        userUnitOfMeasure = Regex.Replace(userUnitOfMeasure, @"[^a-zA-Z0-9_]", "");
+
         command.CommandText =
-            @"
-                CREATE TABLE $userHabitInput (
+            $@"
+                CREATE TABLE IF NOT EXISTS {userHabitInput} (
                  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                 $userUnitOfMeasure INTEGER NOT NULL,
+                 {userUnitOfMeasure} INTEGER NOT NULL,
                  date_only TEXT NOT NULL
                 );  
-            ";
-        command.Parameters.AddWithValue("$userHabitInput",userHabitInput);
-        command.Parameters.AddWithValue("$userUnitOfMeasure", userUnitOfMeasure);
+            "; // cannot parameterize table or column names
+
         command.ExecuteNonQuery();
     }
 
@@ -165,7 +174,7 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
 void EditExistingHabit(List<String> currentHabits, bool voiceMode)
 {
     string userHabitInput = "";
-    string userEditOrUpdateSelection = "";
+    string userEditSelection = "";
     bool validHabitSelected = false;
     bool validAddOrEditOption = false;
 
@@ -198,25 +207,30 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
                
             while (!validAddOrEditOption)
             {
-                Console.WriteLine($"Great! Please select whether you'd like to 'update' or 'add' a new record.");
+                Console.WriteLine($"Great! Please select whether you'd like to 'update' or 'add' or 'delete' a record.");
                 if (voiceMode)
                 {
-                    userEditOrUpdateSelection = GetVoiceInput().Result;
+                    userEditSelection = GetVoiceInput().Result;
                 }
                 else
                 {
                     string? readResult = Console.ReadLine();
                     if (readResult != null)
                     {
-                        userEditOrUpdateSelection = readResult.Trim().ToLower();
+                        userEditSelection = readResult.Trim().ToLower();
                     }
                 }
-                if (userEditOrUpdateSelection == "update")
+                // TODO -- switch on userEditSelection
+
+                if (userEditSelection == "update")
                 {
                     /// METHOD HERE TODO
-                } else if (userEditOrUpdateSelection == "add")
+                } else if (userEditSelection == "add")
                 {
                     /// TODO METHOD HERE
+                    Console.WriteLine($"You're choosing to add a new record.");
+                    AddNewRecordToHabit(userHabitInput,voiceMode);
+
                 } else
                 {
                     Console.WriteLine("I'm sorry, but I didn't understand that. Please try again.");
@@ -274,22 +288,61 @@ void ReadRecordsFromHabit(string habit)
             {
                 Console.Write($"{reader.GetName(i)}\t");
             }
-
             Console.WriteLine();
             while (reader.Read())
             {         
-                // TODO - can iterate through each row as for(int i=0;i++;i<reader.FieldCount)
-                // then store in a list<list<string>> for use / display later
+                // TODO - don't know where the need to store is coming from - i can look up the query by id later 
+                // since it should be created as an autoincrement when the 
                 Console.WriteLine($"{reader.GetString(0)}\t{reader.GetString(1)}\t{reader.GetString(2)}");
-
             }
         }
     }
 
 }
 
+void AddNewRecordToHabit(string habit,bool voiceMode)
+{
+    string userDateInputted = "";
+    int userQuantity;
+    string? readResult;
+    bool validNumEntered = false;
 
+    habit = Regex.Replace(habit, @"[\s]", "_");
+    habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", "");
 
+    Console.WriteLine("Please enter the date of the new record (yyyy-dd-mm");
+    if (voiceMode)
+    {
+        //TODO need to modify voice input validation so that date can be said in a more user-friendly way
+        
+    } else
+    {
+        userDateInputted = GetUserDateInput();
+    }
+
+    while (!validNumEntered)
+    {
+        Console.WriteLine("Please enter the quantity to record");
+        if (voiceMode)
+        {
+            readResult = GetVoiceInput().Result;
+        }
+        else
+        {
+            readResult = Console.ReadLine();
+        } 
+      if (int.TryParse(readResult, out userQuantity))
+        {
+            validNumEntered = true;
+        }
+    }
+    // TODO sqlite connection and executeNonQuery() to the 
+}
+
+string GetUserDateInput()
+{
+    return "";
+}
 async Task<String> GetVoiceInput()
 {
     int repeatCounter = 0;
