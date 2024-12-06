@@ -13,6 +13,7 @@ if (args.Contains("--voice-input")) { userSpeechInput = true; }
 
 
 ReadRecordsFromHabit("sample_habit1");
+AddNewRecordToHabit("coffee_drinking", userSpeechInput);
 ShowMainMenu(userSpeechInput);
 
 void ShowMainMenu(bool voiceMode)
@@ -310,14 +311,15 @@ void AddNewRecordToHabit(string habit,bool voiceMode)
     habit = Regex.Replace(habit, @"[\s]", "_");
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", "");
 
-    Console.WriteLine("Please enter the date of the new record (yyyy-dd-mm");
+    Console.WriteLine("Please enter the date of the new record (yyyy-dd-mm)");
     if (voiceMode)
     {
         //TODO need to modify voice input validation so that date can be said in a more user-friendly way
         
     } else
     {
-        userDateInputted = GetUserDateInput();
+        userDateInputted = Console.ReadLine();
+        // TODOD ?? userDateInputted = GetUserDateInput();
     }
 
     while (!validNumEntered)
@@ -337,6 +339,45 @@ void AddNewRecordToHabit(string habit,bool voiceMode)
         }
     }
     // TODO sqlite connection and executeNonQuery() to the 
+    // first, get user-inputted table name. 
+
+
+    using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+    {
+        connection.Open();
+
+        SqliteCommand validateColumnName = connection.CreateCommand();
+        validateColumnName.CommandText = $"PRAGMA table_info({habit});";
+
+        string potentiallyColumnName = "";
+
+        using (SqliteDataReader reader = validateColumnName.ExecuteReader())
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+
+                Console.WriteLine($"reader.GetName({i}): {reader.GetName(i)}");
+                if (i == 1) { potentiallyColumnName = reader.GetName(i); }
+            }
+
+
+        }
+
+        Console.WriteLine(potentiallyColumnName);
+        Console.ReadLine();
+
+
+
+        var command = connection.CreateCommand();
+        command.CommandText =
+            $@"
+                INSERT INTO ${habit}
+                (unit_of_measure, date_only) VALUES
+                (@userQuantity, @userDateInputted);
+            ";
+
+        command.ExecuteNonQuery();
+    }
 }
 
 string GetUserDateInput()
