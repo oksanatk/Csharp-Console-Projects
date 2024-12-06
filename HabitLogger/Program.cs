@@ -1,6 +1,9 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.CognitiveServices.Speech;
 using System.Text.RegularExpressions;
+using System.Data;
+using System.Data.Common;
+using System.Runtime.CompilerServices;
 
 string? readResult;
 bool userSpeechInput = false;
@@ -304,85 +307,87 @@ void ReadRecordsFromHabit(string habit)
 void AddNewRecordToHabit(string habit,bool voiceMode)
 {
     string userDateInputted = "";
-    int userQuantity;
-    string? readResult;
-    bool validNumEntered = false;
+    List<string> datePieces = new();
+    int userQuantity = -1;
 
     habit = Regex.Replace(habit, @"[\s]", "_");
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", "");
 
-    Console.WriteLine("Please enter the date of the new record (yyyy-dd-mm)");
-    if (voiceMode)
-    {
-        //TODO need to modify voice input validation so that date can be said in a more user-friendly way
-        
-    } else
-    {
-        userDateInputted = Console.ReadLine();
-        // TODOD ?? userDateInputted = GetUserDateInput();
-    }
+    Console.WriteLine("We need the date for the new record of your habit. Please enter the year of the date (yyyy)");
+    datePieces.Add(GetUserIntInput(voiceMode).ToString());
+  
+    Console.WriteLine("Please enter the DAY of the month for the date of your new habit record (dd)");
+    datePieces.Add(GetUserIntInput(voiceMode).ToString());
 
-    while (!validNumEntered)
-    {
-        Console.WriteLine("Please enter the quantity to record");
-        if (voiceMode)
-        {
-            readResult = GetVoiceInput().Result;
-        }
-        else
-        {
-            readResult = Console.ReadLine();
-        } 
-      if (int.TryParse(readResult, out userQuantity))
-        {
-            validNumEntered = true;
-        }
-    }
-    // TODO sqlite connection and executeNonQuery() to the 
-    // first, get user-inputted table name. 
+    Console.WriteLine("Please enter the month of the date of your new habit record (mm)");
+    datePieces.Add(GetUserIntInput(voiceMode).ToString());
 
+    userDateInputted = String.Join("-", datePieces);
+
+    Console.WriteLine("Please enter the quantity to record");
+    userQuantity = GetUserIntInput(voiceMode);
 
     using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
     {
         connection.Open();
 
-        SqliteCommand validateColumnName = connection.CreateCommand();
-        validateColumnName.CommandText = $"PRAGMA table_info({habit});";
+        SqliteCommand validateUnitOfMeasureName = connection.CreateCommand();
+        validateUnitOfMeasureName.CommandText = $"PRAGMA table_info({habit});";
 
-        string potentiallyColumnName = "";
+        string? unitOfMeasureName = "";
 
-        using (SqliteDataReader reader = validateColumnName.ExecuteReader())
+        using (SqliteDataReader reader = validateUnitOfMeasureName.ExecuteReader())
         {
-            for (int i = 0; i < reader.FieldCount; i++)
+            while (reader.Read())
             {
-
-                Console.WriteLine($"reader.GetName({i}): {reader.GetName(i)}");
-                if (i == 1) { potentiallyColumnName = reader.GetName(i); }
+                Console.WriteLine("fieldcount: " + reader.FieldCount);
+                if (reader[0].ToString()=="1" && reader[1] != null)
+                {
+                    unitOfMeasureName = reader[1].ToString();
+                }
             }
-
-
         }
-
-        Console.WriteLine(potentiallyColumnName);
-        Console.ReadLine();
-
-
-
+        
         var command = connection.CreateCommand();
         command.CommandText =
             $@"
-                INSERT INTO ${habit}
-                (unit_of_measure, date_only) VALUES
+                INSERT INTO {habit}
+                ({unitOfMeasureName}, date_only) VALUES
                 (@userQuantity, @userDateInputted);
             ";
+        command.Parameters.AddWithValue("@userQuantity", userQuantity);
+        command.Parameters.AddWithValue("@userDateInputted", userDateInputted);
 
         command.ExecuteNonQuery();
     }
 }
 
-string GetUserDateInput()
+int GetUserIntInput(bool voiceMode)
 {
-    return "";
+    string? maybeNumber = "";
+    bool validNumber = false;
+    int realNumber = -1;
+
+    do
+    {
+        if (voiceMode)
+        {
+            maybeNumber = GetVoiceInput().Result;
+        } else
+        {
+            maybeNumber = Console.ReadLine();
+        }
+        
+        if (int.TryParse(maybeNumber,out realNumber))
+        {
+            validNumber = true;
+        } else
+        {
+            Console.WriteLine("I'm sorry, but I didn't understand that number. Please try again.");
+        }
+    } while (!validNumber);
+
+    return realNumber;
 }
 async Task<String> GetVoiceInput()
 {
