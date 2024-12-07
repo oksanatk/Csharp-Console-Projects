@@ -455,6 +455,8 @@ void ReadRecordsFromHabit(string habit)
 void AddNewRecordToHabit(string habit,bool voiceMode)
 {
     string userDateInputted = "";
+    string userIntString = "";
+    int preformattedDate = -1;
     List<string> datePieces = new();
     int userQuantity = -1;
 
@@ -467,12 +469,30 @@ void AddNewRecordToHabit(string habit,bool voiceMode)
 
     Console.WriteLine("We need the date for the new record of your habit. Please enter the year of the date (yyyy)");
     datePieces.Add(GetUserIntInput(voiceMode).ToString());
-  
+
     Console.WriteLine("Please enter the DAY of the month for the date of your new habit record (dd)");
-    datePieces.Add(GetUserIntInput(voiceMode).ToString());
+    preformattedDate = GetUserIntInput(voiceMode);
+    if (preformattedDate < 10)
+    {
+        userIntString = "0" + preformattedDate.ToString();
+    }
+    else
+    {
+        userIntString = preformattedDate.ToString();
+    }
+    datePieces.Add(userIntString);
 
     Console.WriteLine("Please enter the month of the date of your new habit record (mm)");
-    datePieces.Add(GetUserIntInput(voiceMode).ToString());
+    preformattedDate = GetUserIntInput(voiceMode);
+    if (preformattedDate < 10)
+    {
+        userIntString = "0" + preformattedDate.ToString();
+    }
+    else
+    {
+        userIntString = preformattedDate.ToString();
+    }
+    datePieces.Add(userIntString);
 
     userDateInputted = String.Join("-", datePieces);
 
