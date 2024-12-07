@@ -1,9 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.CognitiveServices.Speech;
 using System.Text.RegularExpressions;
-using System.Data;
-using System.Data.Common;
-using System.Runtime.CompilerServices;
 
 string? readResult;
 bool userSpeechInput = false;
@@ -15,8 +12,7 @@ if (!File.Exists("Habits.db")) { File.Create("Habits.db"); }
 if (args.Contains("--voice-input")) { userSpeechInput = true; }
 
 
-ReadRecordsFromHabit("sample_habit1");
-AddNewRecordToHabit("coffee_drinking", userSpeechInput);
+DeleteExistingHabit(ReadHabitsFromFile(), userSpeechInput);
 ShowMainMenu(userSpeechInput);
 
 void ShowMainMenu(bool voiceMode)
@@ -64,7 +60,7 @@ void ShowMainMenu(bool voiceMode)
                 break;
             case "delete":
             case "3":
-                DeleteAHabit();
+                DeleteExistingHabit(currentHabits,voiceMode);
                 break;
             case "report":
             case "4":
@@ -226,26 +222,128 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
                 }
                 // TODO -- switch on userEditSelection
 
-                if (userEditSelection == "update")
+                switch (userEditSelection)
                 {
-                    /// METHOD HERE TODO
-                } else if (userEditSelection == "add")
-                {
-                    /// TODO METHOD HERE
-                    Console.WriteLine($"You're choosing to add a new record.");
-                    AddNewRecordToHabit(userHabitInput,voiceMode);
+                    case "update":
+                        UpdateRecord(userHabitInput, voiceMode);
+                        //TODO - method not made yet
+                        break;
 
-                } else
-                {
-                    Console.WriteLine("I'm sorry, but I didn't understand that. Please try again.");
+                    case "add":
+                        Console.WriteLine($"You're choosing to add a new record.");
+                        AddNewRecordToHabit(userHabitInput, voiceMode);
+                        break;
+
+                    case "delete":
+                        DeleteRecord(userHabitInput, voiceMode);
+                        // TODO - method not made yet
+                        break;
+
+                    default:
+                        Console.WriteLine("I'm sorry, but I didn't understand that. Please try again.");
+                        break;
                 }
+
             }
         }
 
     }
 }
 
-void DeleteAHabit() { }
+void DeleteExistingHabit(List<String> currentHabits, bool voiceMode)
+{
+    bool validExistingHabit = false;
+    string userSelectedHabit = "";
+    string? userConfirmation ="";
+    string? readResult;
+
+    while (!validExistingHabit)
+    {
+        Console.Clear();
+        Console.WriteLine("Here's a list of the current habits you are tracking.");
+        currentHabits.ForEach(x => Console.WriteLine(x));
+        Console.WriteLine("\t--------------------\n");
+        
+        Console.WriteLine("Please enter the habit you would like to delete. Or enter 'exit' to exit back to the main screen.");
+
+        if (voiceMode)
+        {
+            userSelectedHabit = GetVoiceInput().Result;
+        } else
+        {
+            readResult = Console.ReadLine();
+            if (readResult != null)
+            {
+                userSelectedHabit = readResult.Trim().ToLower();
+                readResult = null;
+            }
+        }
+
+        if (userSelectedHabit != null && currentHabits.Contains(userSelectedHabit))
+        {
+            Console.WriteLine($"You are choosing to delete the habit {userSelectedHabit}. Please confirm if you would like to continue (y/n).");
+            if (voiceMode)
+            {
+                userConfirmation = GetVoiceInput().Result;
+            } else
+            {
+                readResult = Console.ReadLine();
+                if (readResult != null)
+                {
+                    userConfirmation = readResult.Trim().ToLower();
+                    readResult = null;
+                }
+            }
+            if (userConfirmation != null && userConfirmation.StartsWith("y"))
+            {
+                validExistingHabit = true;
+            }
+        }
+        if (userSelectedHabit == "exit") { break; }
+    }
+
+    if (userSelectedHabit!=null && validExistingHabit)
+    {
+        using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+        {
+            connection.Open();
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText =
+                $@"
+                    DROP TABLE IF EXISTS {userSelectedHabit};
+                ";
+
+            command.ExecuteNonQuery();
+        }
+
+        bool validContinue = false;
+        string continueConfirmation = "";
+
+        Console.WriteLine($"Your habit {userSelectedHabit} has been successfully deleted.");
+        do
+        {
+            if (voiceMode)
+            {            
+                Console.WriteLine("Say 'continue' to continue back to the main screen.");
+                continueConfirmation = GetVoiceInput().Result;
+                if (continueConfirmation.StartsWith("c"))
+                {
+                    validContinue = true;
+                }
+            } else
+            {
+                Console.WriteLine("Press the 'Enter' key to continue back to the main menu.");
+                Console.ReadLine();
+                validContinue = true;
+            }
+        } while (!validContinue);
+        
+    }
+}
+
+void DeleteRecord(string habit, bool voiceMode) { }
+
+void UpdateRecord(string habit, bool voiceMode) { }
 
 void ViewHabitReport() { }
 
