@@ -12,7 +12,6 @@ if (!File.Exists("Habits.db")) { File.Create("Habits.db"); }
 if (args.Contains("--voice-input")) { userSpeechInput = true; }
 
 
-DeleteExistingHabit(ReadHabitsFromFile(), userSpeechInput);
 ShowMainMenu(userSpeechInput);
 
 void ShowMainMenu(bool voiceMode)
@@ -52,7 +51,6 @@ void ShowMainMenu(bool voiceMode)
             case "create":
             case "1":
                 CreateNewHabit(currentHabits, voiceMode);
-                // do i need a function to read the existing habits from the database and turn it into a string?
                 break;
             case "edit":
             case "2":
@@ -64,7 +62,7 @@ void ShowMainMenu(bool voiceMode)
                 break;
             case "report":
             case "4":
-                ViewHabitReport();
+                ViewHabitReport(); // TODO -- method not complete, need to create still
                 break;
             case "exit":
                 endApp = true;
@@ -178,7 +176,9 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
     bool validHabitSelected = false;
     bool validAddOrEditOption = false;
 
-    Console.WriteLine("\n\t Here are the current habits you are logging: ");
+    currentHabits.Remove("sqlite_sequence");
+
+    Console.WriteLine("\n\tHere are the current habits you are logging: \n");
     currentHabits.ForEach(h => Console.WriteLine(h));
     Console.WriteLine("\t--------------------\n");
 
@@ -197,17 +197,16 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
             if (readResult != null)
             {
                 userHabitInput = readResult;
+                readResult = null;
             }
         }
         if (currentHabits.Contains(userHabitInput))
         {
             validHabitSelected = true;
-            // TODO view all records of that habit?
-            ReadRecordsFromHabit(userHabitInput);
                
             while (!validAddOrEditOption)
             {
-                Console.WriteLine($"Great! Please select whether you'd like to 'update' or 'add' or 'delete' a record.");
+                Console.WriteLine($"\nGreat! Please select whether you'd like to 'update' or 'add' or 'delete' a record. Or enter 'exit' to return to the main menu.");
                 if (voiceMode)
                 {
                     userEditSelection = GetVoiceInput().Result;
@@ -218,25 +217,32 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
                     if (readResult != null)
                     {
                         userEditSelection = readResult.Trim().ToLower();
+                        readResult = null;
                     }
                 }
-                // TODO -- switch on userEditSelection
 
                 switch (userEditSelection)
                 {
                     case "update":
                         UpdateRecord(userHabitInput, voiceMode);
+                        validAddOrEditOption = true;
                         //TODO - method not made yet
                         break;
 
                     case "add":
                         Console.WriteLine($"You're choosing to add a new record.");
                         AddNewRecordToHabit(userHabitInput, voiceMode);
+                        validAddOrEditOption = true;
                         break;
 
                     case "delete":
                         DeleteRecord(userHabitInput, voiceMode);
+                        validAddOrEditOption = true;
                         // TODO - method not made yet
+                        break;
+
+                    case "exit":
+                        validAddOrEditOption= true;
                         break;
 
                     default:
@@ -278,6 +284,9 @@ void DeleteExistingHabit(List<String> currentHabits, bool voiceMode)
                 readResult = null;
             }
         }
+        // TOOD -- feature idea: 
+        //      maybe use regex so that user can type spaces instead of underscores, and automatically replace them for the sql query? 
+        //          that'd be cool
 
         if (userSelectedHabit != null && currentHabits.Contains(userSelectedHabit))
         {
@@ -336,14 +345,52 @@ void DeleteExistingHabit(List<String> currentHabits, bool voiceMode)
                 Console.ReadLine();
                 validContinue = true;
             }
-        } while (!validContinue);
-        
+        } while (!validContinue);        
     }
 }
 
-void DeleteRecord(string habit, bool voiceMode) { }
+void DeleteRecord(string habit, bool voiceMode)
+{
+    int userSelectedId;
+    habit = habit.Trim().ToLower();
+    habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", ""); 
+    // TODO -- so part 1 would be to display all records, then get user selection by (id? date?) -- no, user selction by id
+    //      then, i'd need to validate that it's a valid id (when do i get this? when I'm initally reading all the records? push all existing ids to a list?)
+    //      and then, i'd need to send a super simple sqlite executenonquery with the delete command. hmmm...
+    ReadRecordsFromHabit(habit);
+    Console.WriteLine("Please select the id (#) of the habit you would like to delete.");
 
-void UpdateRecord(string habit, bool voiceMode) { }
+    // TODO -- List<int> or List<String> valid ids please?
+
+    userSelectedId = GetUserIntInput(voiceMode); 
+
+    using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+    {
+        connection.Open();
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandText =
+            $@"
+                DELETE FROM {habit} WHERE id=@userSelectedId;
+            ";
+
+        command.Parameters.AddWithValue("@userSelectedId", userSelectedId);
+        command.ExecuteNonQuery();
+    }
+    if (voiceMode)
+    {
+        Console.WriteLine($"Your record for the habit {habit}, and the id {userSelectedId} is no more. Please wait a few seconds to continue.");
+        Thread.Sleep(3000);
+    } else
+    {
+        Console.WriteLine($"Your record for the habit {habit}, and the id {userSelectedId} is no more. Press the 'Enter' key to continue.");
+        Console.ReadLine();
+    }
+}
+
+void UpdateRecord(string habit, bool voiceMode)
+{
+    
+}
 
 void ViewHabitReport() { }
 
@@ -375,8 +422,11 @@ List<String> ReadHabitsFromFile()
 
 void ReadRecordsFromHabit(string habit)
 {
-    Regex.Replace(habit, @"[^a-zA-Z0-9_]", ""); // remove non-alphanumeric to reduce risk of sql injection
+    //ids = new List<int>();
+    habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", ""); // remove non-alphanumeric to reduce risk of sql injection
     string commandText = $"SELECT * FROM {habit};"; // cannot parameterize table names, must format command string manually
+
+    Console.WriteLine($"Here are the existing records from the habit {habit}: \n");
 
     using (var connection = new SqliteConnection("DataSource=Habits.db"))
     {
@@ -399,7 +449,7 @@ void ReadRecordsFromHabit(string habit)
             }
         }
     }
-
+    Console.WriteLine("\t--------------------\n");
 }
 
 void AddNewRecordToHabit(string habit,bool voiceMode)
@@ -410,6 +460,10 @@ void AddNewRecordToHabit(string habit,bool voiceMode)
 
     habit = Regex.Replace(habit, @"[\s]", "_");
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", "");
+
+    ReadRecordsFromHabit(habit);
+
+    // TODO -- exit from this view back to main menu if the user wants.
 
     Console.WriteLine("We need the date for the new record of your habit. Please enter the year of the date (yyyy)");
     datePieces.Add(GetUserIntInput(voiceMode).ToString());
@@ -438,7 +492,6 @@ void AddNewRecordToHabit(string habit,bool voiceMode)
         {
             while (reader.Read())
             {
-                Console.WriteLine("fieldcount: " + reader.FieldCount);
                 if (reader[0].ToString()=="1" && reader[1] != null)
                 {
                     unitOfMeasureName = reader[1].ToString();
@@ -524,76 +577,4 @@ async Task<String> GetVoiceInput()
     } while (result.Reason != ResultReason.RecognizedSpeech);
 
     return "UnexpectedVoiceResult Error";
-}
-
-void HelloWorldSQLite()
-{
-    using (var connection = new SqliteConnection("Data Source=testCode.db"))
-    {
-        connection.Open();
-
-        var command = connection.CreateCommand();
-        command.CommandText =
-            @"
-            CREATE TABLE user (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL
-            );
-    
-            INSERT INTO user
-            VALUES (1,'Brice'),
-                   (2,'Alexander'),
-                   (3,'Nate');
-        ";
-
-        command.ExecuteNonQuery();
-
-        Console.Write("Name: ");
-        var name = Console.ReadLine();
-
-        command.CommandText =
-            @"
-            INSERT INTO user (name)
-            VALUES ($name)
-        ";
-        command.Parameters.AddWithValue("$name", name);
-        command.ExecuteNonQuery();
-
-        command.CommandText =
-            @"
-            SELECT last_insert_rowid()
-        ";
-        var newId = (long)command.ExecuteScalar();
-
-        Console.WriteLine($"Your new user ID is {newId}");
-    }
-
-    Console.Write("User ID: ");
-    var id = int.Parse(Console.ReadLine());
-
-    using (var connection = new SqliteConnection("Data Source=testCode.db"))
-    {
-        connection.Open();
-        var command = connection.CreateCommand();
-        command.CommandText =
-            @"
-            SELECT name
-            FROM user
-            WHERE id = $id
-        ";
-        command.Parameters.AddWithValue("$id", id);
-
-        using (var reader = command.ExecuteReader())
-        {
-            while (reader.Read())
-            {
-                var name = reader.GetString(0);
-                Console.WriteLine($"Hello, {name}");
-            }
-        }
-
-    }
-
-    SqliteConnection.ClearAllPools();
-    File.Delete("testCode.db");
 }
