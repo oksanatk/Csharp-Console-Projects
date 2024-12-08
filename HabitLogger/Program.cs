@@ -238,7 +238,6 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
                     case "delete":
                         DeleteRecord(userHabitInput, voiceMode);
                         validAddOrEditOption = true;
-                        // TODO - method not made yet
                         break;
 
                     case "exit":
@@ -354,14 +353,9 @@ void DeleteRecord(string habit, bool voiceMode)
     int userSelectedId;
     habit = habit.Trim().ToLower();
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", ""); 
-    // TODO -- so part 1 would be to display all records, then get user selection by (id? date?) -- no, user selction by id
-    //      then, i'd need to validate that it's a valid id (when do i get this? when I'm initally reading all the records? push all existing ids to a list?)
-    //      and then, i'd need to send a super simple sqlite executenonquery with the delete command. hmmm...
+
     ReadRecordsFromHabit(habit);
     Console.WriteLine("Please select the id (#) of the habit you would like to delete.");
-
-    // TODO -- List<int> or List<String> valid ids please?
-
     userSelectedId = GetUserIntInput(voiceMode); 
 
     using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
@@ -390,66 +384,6 @@ void DeleteRecord(string habit, bool voiceMode)
 void UpdateRecord(string habit, bool voiceMode)
 {
     
-}
-
-void ViewHabitReport() { }
-
-List<String> ReadHabitsFromFile()
-{
-    List<String> currentHabits = new();
-
-    using (var connection = new SqliteConnection("DataSource=Habits.db"))
-    {
-        connection.Open();
-        var command = connection.CreateCommand();
-        command.CommandText = 
-            @" 
-                SELECT * 
-                FROM sqlite_master
-                WHERE type='table'
-            ";
-
-        using (SqliteDataReader reader = command.ExecuteReader())
-        {
-            while (reader.Read())
-            {
-                currentHabits.Add(reader.GetString(1));
-            }
-        }
-    }
-    return currentHabits;
-}
-
-void ReadRecordsFromHabit(string habit)
-{
-    //ids = new List<int>();
-    habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", ""); // remove non-alphanumeric to reduce risk of sql injection
-    string commandText = $"SELECT * FROM {habit};"; // cannot parameterize table names, must format command string manually
-
-    Console.WriteLine($"Here are the existing records from the habit {habit}: \n");
-
-    using (var connection = new SqliteConnection("DataSource=Habits.db"))
-    {
-        connection.Open();
-        var command = connection.CreateCommand();
-        command.CommandText = commandText;
-
-        using (SqliteDataReader reader = command.ExecuteReader())
-        {
-            for (int i = 0; i < reader.FieldCount; i++)
-            {
-                Console.Write($"{reader.GetName(i)}\t");
-            }
-            Console.WriteLine();
-            while (reader.Read())
-            {         
-                // TODO - don't know where the need to store is coming from - i can look up the query by id later 
-                // since it should be created as an autoincrement when the 
-                Console.WriteLine($"{reader.GetString(0)}\t{reader.GetString(1)}\t{reader.GetString(2)}");
-            }
-        }
-    }
-    Console.WriteLine("\t--------------------\n");
 }
 
 void AddNewRecordToHabit(string habit,bool voiceMode)
@@ -531,6 +465,66 @@ void AddNewRecordToHabit(string habit,bool voiceMode)
 
         command.ExecuteNonQuery();
     }
+}
+
+void ViewHabitReport() { }
+
+List<String> ReadHabitsFromFile()
+{
+    List<String> currentHabits = new();
+
+    using (var connection = new SqliteConnection("DataSource=Habits.db"))
+    {
+        connection.Open();
+        var command = connection.CreateCommand();
+        command.CommandText = 
+            @" 
+                SELECT * 
+                FROM sqlite_master
+                WHERE type='table'
+            ";
+
+        using (SqliteDataReader reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                currentHabits.Add(reader.GetString(1));
+            }
+        }
+    }
+    return currentHabits;
+}
+
+void ReadRecordsFromHabit(string habit)
+{
+    //ids = new List<int>();
+    habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", ""); // remove non-alphanumeric to reduce risk of sql injection
+    string commandText = $"SELECT * FROM {habit};"; // cannot parameterize table names, must format command string manually
+
+    Console.WriteLine($"Here are the existing records from the habit {habit}: \n");
+
+    using (var connection = new SqliteConnection("DataSource=Habits.db"))
+    {
+        connection.Open();
+        var command = connection.CreateCommand();
+        command.CommandText = commandText;
+
+        using (SqliteDataReader reader = command.ExecuteReader())
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                Console.Write($"{reader.GetName(i)}\t");
+            }
+            Console.WriteLine();
+            while (reader.Read())
+            {         
+                // TODO - don't know where the need to store is coming from - i can look up the query by id later 
+                // since it should be created as an autoincrement when the 
+                Console.WriteLine($"{reader.GetString(0)}\t{reader.GetString(1)}\t{reader.GetString(2)}");
+            }
+        }
+    }
+    Console.WriteLine("\t--------------------\n");
 }
 
 int GetUserIntInput(bool voiceMode)
