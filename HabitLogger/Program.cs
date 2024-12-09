@@ -10,7 +10,7 @@ string? speechRegion = Environment.GetEnvironmentVariable("Azure_SpeechSDK_Regio
 if (!File.Exists("Habits.db")) 
 { 
     File.Create("Habits.db"); 
-    // TODO -- AutoPopulateSampleData();
+    AutoPopulateSampleData();
 }
 
 if (args.Contains("--voice-input")) { userSpeechInput = true; }
@@ -387,6 +387,7 @@ void UpdateRecord(string habit, bool voiceMode)
     int userSelectedId = -1;
     int userSelectedQuantity = -1;
     string userSelectedDate = "";
+    string habitUnitOfMeasure = "";
 
     habit = habit.Trim().ToLower();
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", "");
@@ -395,7 +396,7 @@ void UpdateRecord(string habit, bool voiceMode)
     Console.WriteLine("Please select the id (#) of the record you would like to update.");
     userSelectedId = GetUserIntInput(voiceMode);
 
-    Console.WriteLine($"Now we'll need to get the new date you would like to update entry id {userSelectedId} to.");
+    Console.WriteLine($"Now we'll need to get the new date you would like to update entry with id #{userSelectedId} to.");
     userSelectedDate = GetUserDateInput(voiceMode);
 
     Console.WriteLine($"Please enter the new quantity (##) you would like to record.");
@@ -405,7 +406,7 @@ void UpdateRecord(string habit, bool voiceMode)
     {
         connection.Open();
 
-        string habitUnitOfMeasure = ReadUnitOfMeasureFromHabit(connection, habit);
+        habitUnitOfMeasure = ReadUnitOfMeasureFromHabit(connection, habit);
         habitUnitOfMeasure = habitUnitOfMeasure.Trim().ToLower();
         habitUnitOfMeasure = Regex.Replace(habitUnitOfMeasure, @"[^a-zA-Z0-9_]", "");
 
@@ -424,6 +425,7 @@ void UpdateRecord(string habit, bool voiceMode)
 
         command.ExecuteNonQuery();
     }
+    Console.WriteLine($"The entry in the habit {habit} and id #{userSelectedId} has been updated to {userSelectedQuantity} {habitUnitOfMeasure} on {userSelectedDate}. ");
 }
 
 void AddNewRecordToHabit(string habit,bool voiceMode)
@@ -485,6 +487,34 @@ void AddNewRecordToHabit(string habit,bool voiceMode)
 }
 
 void ViewHabitReport() { }
+
+void AutoPopulateSampleData()
+{
+
+    using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+    {
+        connection.Open();
+        SqliteCommand command = connection.CreateCommand();
+
+        command.CommandText =
+            $@"
+                CREATE TABLE IF NOT EXISTS sample_habit1 (
+                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                 sample_measure1 INTEGER NOT NULL,
+                 date_only TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS sample_habit2 (
+                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                 sample_measure2 INTEGER NOT NULL,
+                 date_only TEXT NOT NULL
+                );
+            ";
+        // how to create random data?
+            // hmmm... is there a built-in way to do so in a range with sqlite natively?
+            //     if not, then I could use Math.Random() I suppose, in a for loop? how many sample entries? 20? 100?
+    }
+}
 
 List<String> ReadHabitsFromFile()
 {
