@@ -7,7 +7,11 @@ bool userSpeechInput = false;
 string? speechKey = Environment.GetEnvironmentVariable("Azure_SpeechSDK_Key");
 string? speechRegion = Environment.GetEnvironmentVariable("Azure_SpeechSDK_Region");
 
-if (!File.Exists("Habits.db")) { File.Create("Habits.db"); }
+if (!File.Exists("Habits.db")) 
+{ 
+    File.Create("Habits.db"); 
+    // TODO -- AutoPopulateSampleData();
+}
 
 if (args.Contains("--voice-input")) { userSpeechInput = true; }
 
@@ -165,7 +169,6 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
 
         command.ExecuteNonQuery();
     }
-
     Console.WriteLine($"New habit called {userHabitInput} with the unit of measure {userUnitOfMeasure} has been created!");
 }
 
@@ -248,10 +251,8 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
                         Console.WriteLine("I'm sorry, but I didn't understand that. Please try again.");
                         break;
                 }
-
             }
         }
-
     }
 }
 
@@ -383,15 +384,52 @@ void DeleteRecord(string habit, bool voiceMode)
 
 void UpdateRecord(string habit, bool voiceMode)
 {
-    
+    int userSelectedId = -1;
+    int userSelectedQuantity = -1;
+    string userSelectedDate = "";
+
+    habit = habit.Trim().ToLower();
+    habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", "");
+
+    ReadRecordsFromHabit(habit);
+    Console.WriteLine("Please select the id (#) of the record you would like to update.");
+    userSelectedId = GetUserIntInput(voiceMode);
+
+    Console.WriteLine($"Now we'll need to get the new date you would like to update entry id {userSelectedId} to.");
+    userSelectedDate = GetUserDateInput(voiceMode);
+
+    Console.WriteLine($"Please enter the new quantity (##) you would like to record.");
+    userSelectedQuantity = GetUserIntInput(voiceMode);
+
+    using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+    {
+        connection.Open();
+
+        string habitUnitOfMeasure = ReadUnitOfMeasureFromHabit(connection, habit);
+        habitUnitOfMeasure = habitUnitOfMeasure.Trim().ToLower();
+        habitUnitOfMeasure = Regex.Replace(habitUnitOfMeasure, @"[^a-zA-Z0-9_]", "");
+
+        SqliteCommand command = connection.CreateCommand();
+        command.CommandText =
+            $@"
+                INSERT INTO {habit} (id, {habitUnitOfMeasure}, date_only)
+                VALUES (@userSelectedId, @userSelectedQuantity, '@userSelectedDate)
+                    ON CONFLICT(id) DO UPDATE SET
+                    {habitUnitOfMeasure} = excluded.{habitUnitOfMeasure},
+                    date_only = excluded.date_only;
+            ";
+        command.Parameters.AddWithValue("@userSelectedId", userSelectedId);
+        command.Parameters.AddWithValue("@userSelectedQuantity", userSelectedQuantity);
+        command.Parameters.AddWithValue("@userSelectedDate", userSelectedDate);
+
+        command.ExecuteNonQuery();
+    }
 }
 
 void AddNewRecordToHabit(string habit,bool voiceMode)
 {
+    bool exitToMainMenu = false;
     string userDateInputted = "";
-    string userIntString = "";
-    int preformattedDate = -1;
-    List<string> datePieces = new();
     int userQuantity = -1;
 
     habit = Regex.Replace(habit, @"[\s]", "_");
@@ -399,71 +437,50 @@ void AddNewRecordToHabit(string habit,bool voiceMode)
 
     ReadRecordsFromHabit(habit);
 
-    // TODO -- exit from this view back to main menu if the user wants.
-
-    Console.WriteLine("We need the date for the new record of your habit. Please enter the year of the date (yyyy)");
-    datePieces.Add(GetUserIntInput(voiceMode).ToString());
-
-    Console.WriteLine("Please enter the DAY of the month for the date of your new habit record (dd)");
-    preformattedDate = GetUserIntInput(voiceMode);
-    if (preformattedDate < 10)
-    {
-        userIntString = "0" + preformattedDate.ToString();
-    }
-    else
-    {
-        userIntString = preformattedDate.ToString();
-    }
-    datePieces.Add(userIntString);
-
-    Console.WriteLine("Please enter the month of the date of your new habit record (mm)");
-    preformattedDate = GetUserIntInput(voiceMode);
-    if (preformattedDate < 10)
-    {
-        userIntString = "0" + preformattedDate.ToString();
-    }
-    else
-    {
-        userIntString = preformattedDate.ToString();
-    }
-    datePieces.Add(userIntString);
-
-    userDateInputted = String.Join("-", datePieces);
+    Console.WriteLine("To add a new entry, we'll first need the date of the new entry.\n");
+    userDateInputted = GetUserDateInput(voiceMode);
 
     Console.WriteLine("Please enter the quantity to record");
     userQuantity = GetUserIntInput(voiceMode);
-
-    using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+    
+    // confirm or exit to main menu
+    string confirmationMessage = "";
+    Console.WriteLine($"You're choosing to add a new record to the habit {habit} with the quantity {userQuantity} and date {userDateInputted} (yyyy-dd-mm). Please confirm (y/n).");
+    if (voiceMode)
     {
-        connection.Open();
-
-        SqliteCommand validateUnitOfMeasureName = connection.CreateCommand();
-        validateUnitOfMeasureName.CommandText = $"PRAGMA table_info({habit});";
-
-        string? unitOfMeasureName = "";
-
-        using (SqliteDataReader reader = validateUnitOfMeasureName.ExecuteReader())
+        confirmationMessage = GetVoiceInput().Result;
+    } else
+    {
+        readResult = Console.ReadLine();
+        if (readResult != null)
         {
-            while (reader.Read())
-            {
-                if (reader[0].ToString()=="1" && reader[1] != null)
-                {
-                    unitOfMeasureName = reader[1].ToString();
-                }
-            }
+            confirmationMessage = readResult.Trim().ToLower();
         }
-        
-        var command = connection.CreateCommand();
-        command.CommandText =
-            $@"
+    }
+    if (!confirmationMessage.Contains("y"))
+    {
+        exitToMainMenu = true;
+    }
+
+    if (!exitToMainMenu)
+    {
+        using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+        {
+            connection.Open();
+            string unitOfMeasureName = ReadUnitOfMeasureFromHabit(connection, habit);
+
+            var command = connection.CreateCommand();
+            command.CommandText =
+                $@"
                 INSERT INTO {habit}
                 ({unitOfMeasureName}, date_only) VALUES
                 (@userQuantity, @userDateInputted);
             ";
-        command.Parameters.AddWithValue("@userQuantity", userQuantity);
-        command.Parameters.AddWithValue("@userDateInputted", userDateInputted);
+            command.Parameters.AddWithValue("@userQuantity", userQuantity);
+            command.Parameters.AddWithValue("@userDateInputted", userDateInputted);
 
-        command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+        } 
     }
 }
 
@@ -495,9 +512,32 @@ List<String> ReadHabitsFromFile()
     return currentHabits;
 }
 
+string ReadUnitOfMeasureFromHabit(SqliteConnection connection, string habit)
+{
+    string? unitOfMeasureName = "";
+
+    SqliteCommand validateUnitOfMeasureName = connection.CreateCommand();
+    validateUnitOfMeasureName.CommandText = $"PRAGMA table_info({habit});";
+
+    using (SqliteDataReader reader = validateUnitOfMeasureName.ExecuteReader())
+    {
+        while (reader.Read())
+        {
+            if (reader[0].ToString() == "1" && reader[1] != null)
+            {
+                unitOfMeasureName = reader[1].ToString();
+            }
+        }
+    }
+    if (unitOfMeasureName != null)
+    {
+        return unitOfMeasureName;
+    }
+    return "";
+}
+
 void ReadRecordsFromHabit(string habit)
 {
-    //ids = new List<int>();
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", ""); // remove non-alphanumeric to reduce risk of sql injection
     string commandText = $"SELECT * FROM {habit};"; // cannot parameterize table names, must format command string manually
 
@@ -518,8 +558,6 @@ void ReadRecordsFromHabit(string habit)
             Console.WriteLine();
             while (reader.Read())
             {         
-                // TODO - don't know where the need to store is coming from - i can look up the query by id later 
-                // since it should be created as an autoincrement when the 
                 Console.WriteLine($"{reader.GetString(0)}\t{reader.GetString(1)}\t{reader.GetString(2)}");
             }
         }
@@ -527,11 +565,55 @@ void ReadRecordsFromHabit(string habit)
     Console.WriteLine("\t--------------------\n");
 }
 
-int GetUserIntInput(bool voiceMode)
+string GetUserDateInput(bool voiceMode)
 {
+    List<string> datePieces = new();
+    int preformattedDate = -1;
+    string date = "";
+    string userIntAsString = "";
+
+    Console.WriteLine("We need the date for the new record of your habit. Please enter the year of the date (yyyy)");
+    datePieces.Add(GetUserIntInput(voiceMode, gettingYear: true).ToString());
+
+    Console.WriteLine("Please enter the DAY of the month for the date of your new habit record (dd)");
+    preformattedDate = GetUserIntInput(voiceMode, gettingDay: true);
+    if (preformattedDate < 10)
+    {
+        userIntAsString = "0" + preformattedDate.ToString();
+    }
+    else
+    {
+        userIntAsString = preformattedDate.ToString();
+    }
+    datePieces.Add(userIntAsString);
+
+    Console.WriteLine("Please enter the month of the date of your new habit record (mm)");
+    preformattedDate = GetUserIntInput(voiceMode, gettingMonth: true);
+    if (preformattedDate < 10)
+    {
+        userIntAsString = "0" + preformattedDate.ToString();
+    }
+    else
+    {
+        userIntAsString = preformattedDate.ToString();
+    }
+    datePieces.Add(userIntAsString);
+    date = String.Join("-", datePieces);
+
+    return date;
+}
+
+int GetUserIntInput(bool voiceMode, bool gettingYear=false, bool gettingDay=false, bool gettingMonth=false)
+{
+    bool gettingDate = false;
     string? maybeNumber = "";
     bool validNumber = false;
     int realNumber = -1;
+
+    if (gettingYear || gettingMonth || gettingDay)
+    {
+        gettingDate = true;
+    }
 
     do
     {
@@ -545,7 +627,30 @@ int GetUserIntInput(bool voiceMode)
         
         if (int.TryParse(maybeNumber,out realNumber))
         {
-            validNumber = true;
+            if (gettingDate)
+            {
+                if (realNumber <= 0)
+                {
+                    Console.WriteLine("Dates can't be negative or zero. Please enter a positive number.");
+                }
+
+                if (gettingYear && (realNumber >3000 || realNumber <1000))
+                {
+                    Console.WriteLine("Wow! You must live in another age. We can only do years between 1000 and 3000. Please try again.");
+                } else if (gettingDay && realNumber > 31)
+                {
+                    Console.WriteLine("Woah! I don't know which cool time system you're on, but our months only have days between 1 and 31. Please try again.");
+                } else if (gettingMonth && realNumber >12)
+                {
+                    Console.WriteLine("Woah! I don't know what cool calendar you're on, but ours only has months between 1 and 12.");
+                } else
+                {
+                    validNumber = true;
+                }
+            } else
+            {
+                validNumber =true;
+            }
         } else
         {
             Console.WriteLine("I'm sorry, but I didn't understand that number. Please try again.");
@@ -554,6 +659,7 @@ int GetUserIntInput(bool voiceMode)
 
     return realNumber;
 }
+
 async Task<String> GetVoiceInput()
 {
     int repeatCounter = 0;
