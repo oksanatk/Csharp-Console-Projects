@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.CognitiveServices.Speech;
 using System.Text.RegularExpressions;
+using Microsoft.CognitiveServices.Speech.Speaker;
 
 string? readResult;
 bool userSpeechInput = false;
@@ -26,6 +27,7 @@ void ShowMainMenu(bool voiceMode)
     while (!endApp)
     {
         List<String> currentHabits = ReadHabitsFromFile();
+        currentHabits.Remove("sqlite_sequence");
 
         Console.Clear();
         Console.WriteLine("Welcome to your personal Habit Logger.\n");
@@ -66,7 +68,7 @@ void ShowMainMenu(bool voiceMode)
                 break;
             case "report":
             case "4":
-                ViewHabitReport(); // TODO -- method not complete, need to create still
+                ViewHabitReport(currentHabits, voiceMode); // TODO -- method not complete, need to create still
                 break;
             case "exit":
                 endApp = true;
@@ -179,8 +181,6 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
     bool validHabitSelected = false;
     bool validAddOrEditOption = false;
 
-    currentHabits.Remove("sqlite_sequence");
-
     Console.WriteLine("\n\tHere are the current habits you are logging: \n");
     currentHabits.ForEach(h => Console.WriteLine(h));
     Console.WriteLine("\t--------------------\n");
@@ -229,7 +229,6 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
                     case "update":
                         UpdateRecord(userHabitInput, voiceMode);
                         validAddOrEditOption = true;
-                        //TODO - method not made yet
                         break;
 
                     case "add":
@@ -486,7 +485,118 @@ void AddNewRecordToHabit(string habit,bool voiceMode)
     }
 }
 
-void ViewHabitReport() { }
+void ViewHabitReport(List<String> currentHabits, bool voiceMode)
+{
+    bool backToMainMenu = false;
+    bool validHabitSelected = false;
+    string userContinue = "";
+    string? readResult;
+    string userHabitSelection = "";
+    string habitUnitOfMeasure = "";
+
+    List<List<String>> specialtyStatQueries = new List<List<String>>()
+    {
+        new List<String> {"All-Time Number of Records: ", @" SELECT COUNT(*) FROM @userHabitSelection;" },
+
+        new List<String> {"Number of Records in Past Year (Past 365 days): ", @" SELECT COUNT(*) FROM @userHabitSelection WHERE date_only >= date('now', '-365 days');" },
+
+        new List<String> {"Total @habitUnitOfMeasure Recorded All-Time: ", @" SELECT SUM(@habitUnitOfMeasure) FROM @userHabitSelection;" },
+
+        new List<String> {"Total @habitUnitOfMeasure for Past Year: ", @" SELECT SUM(@habitUnitOfMeasure) FROM @userHabitSelection WHERE date_only >= date('now', '-365 days');" },
+
+        new List<String> {"Average @habitUnitOfMeasure All-Time: ", @" SELECT AVG(@habitUnitOfMeasure) FROM @userHabitSelection;" },
+
+        new List<String> {"Average @habitUnitOfMeasure for Past Year: ", @" SELECT AVG(@habitUnitOfMeasure) FROM @userHabitSelection WHERE date_only >= date('now', '-365 days');" },
+
+        new List<String> {"Highest Number of @habitUnitOfMeasure Ever: ", @" SELECT MAX(@habitUnitOfMeasure) FROM @userHabitSelection;" },
+
+        new List<String> {"Lowest Number of @habitUnitOfMeasure Ever: ", @" SELECT MIN(@habitUnitOfMeasure) FROM @userHabitSelection;" }
+    };
+
+    Console.Clear();
+    Console.WriteLine("\n\tHere are the current habits you can view a report for: \n");
+    currentHabits.ForEach(h => Console.WriteLine(h));
+    Console.WriteLine("\t--------------------\n");
+
+    while (!validHabitSelected)
+    {
+        Console.WriteLine("Please select the habit you would like to view statistics for.");
+        if (voiceMode)
+        {
+            userHabitSelection = GetVoiceInput().Result;
+        }
+        else
+        {
+            readResult = Console.ReadLine();
+            if (readResult != null)
+            {
+                userHabitSelection = readResult.Trim().ToLower();
+            }
+        }
+        userHabitSelection = Regex.Replace(userHabitSelection, @"[\s]", "_");
+        userHabitSelection = Regex.Replace(userHabitSelection, @"[^a-zA-Z0-9_]", "");
+
+
+        if (currentHabits.Contains(userHabitSelection))
+        {
+            validHabitSelected = true;
+        } else
+        {
+            Console.WriteLine("Sorry, but that didn't look like a habit you are currently tracking. Please try again.");
+        }
+    }
+
+    using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+    {
+        connection.Open();
+        habitUnitOfMeasure = ReadUnitOfMeasureFromHabit(connection,userHabitSelection);
+        habitUnitOfMeasure = Regex.Replace(habitUnitOfMeasure, @"[^a-zA-Z0-9_]", "");
+
+        for(int i = 0; i < specialtyStatQueries.Count; i++)
+        {
+            for (int j=0; j<specialtyStatQueries[i].Count; j++)
+            {
+                specialtyStatQueries[i][j] = Regex.Replace(specialtyStatQueries[i][j], "@userHabitSelection", userHabitSelection);
+                specialtyStatQueries[i][j] = Regex.Replace(specialtyStatQueries[i][j], "@habitUnitOfMeasure", habitUnitOfMeasure);
+            }
+        }
+
+        SqliteCommand command = connection.CreateCommand();
+
+        foreach(List<String> specialtyQuery in specialtyStatQueries)
+        {
+            command.CommandText = specialtyQuery[1];
+            var executed = command.ExecuteScalar();
+            if (executed != null)
+            {
+                Console.Write(specialtyQuery[0]);
+                Console.WriteLine(executed.ToString());
+            } else
+            {
+                Console.WriteLine(specialtyQuery[0], "Unknown.");
+            }
+        }
+        // TODO -- challenge to think about: potentially adding a feature to return longest streak of consecutive entries
+        // maybe?
+    }
+
+    if (voiceMode)
+    {
+        Console.WriteLine("\nSay 'Continue' to continue back to the main menu.");
+        while (!backToMainMenu)
+        {
+            userContinue = GetVoiceInput().Result;
+            if (userContinue.StartsWith("c"))
+            {
+                backToMainMenu = true;
+            }
+        }
+    } else
+    {
+        Console.WriteLine("\nPress the 'Enter' key to return back to the main menu.");
+        Console.ReadLine();
+    }
+}
 
 void AutoPopulateSampleData()
 {
@@ -527,7 +637,6 @@ void AutoPopulateSampleData()
 
                 command.ExecuteNonQuery();
             }
-
         }
     }
 }
