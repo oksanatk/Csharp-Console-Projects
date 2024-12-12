@@ -9,7 +9,7 @@ string? speechRegion = Environment.GetEnvironmentVariable("Azure_SpeechSDK_Regio
 
 if (!File.Exists("Habits.db")) 
 { 
-    File.Create("Habits.db"); 
+    File.Create("Habits.db").Close(); 
     AutoPopulateSampleData();
 }
 
@@ -490,7 +490,6 @@ void ViewHabitReport() { }
 
 void AutoPopulateSampleData()
 {
-
     using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
     {
         connection.Open();
@@ -500,19 +499,36 @@ void AutoPopulateSampleData()
             $@"
                 CREATE TABLE IF NOT EXISTS sample_habit1 (
                  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                 sample_measure1 INTEGER NOT NULL,
+                 sample_measure INTEGER NOT NULL,
                  date_only TEXT NOT NULL
                 );
 
                 CREATE TABLE IF NOT EXISTS sample_habit2 (
                  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                 sample_measure2 INTEGER NOT NULL,
+                 sample_measure INTEGER NOT NULL,
                  date_only TEXT NOT NULL
                 );
             ";
-        // how to create random data?
-            // hmmm... is there a built-in way to do so in a range with sqlite natively?
-            //     if not, then I could use Math.Random() I suppose, in a for loop? how many sample entries? 20? 100?
+        command.ExecuteNonQuery();
+
+        foreach (string sampleHabit in new string[] { "sample_habit1","sample_habit2" })
+        {
+            for (int i = 0; i<20; i++)
+            {
+
+                command.CommandText =
+                    $@"
+                        INSERT INTO {sampleHabit} (sample_measure, date_only)
+                        VALUES (
+                            ((abs(random()) % 36) + 1),
+                            date('2022-01-01', '+' || abs(random() % 1085) || ' days')
+                        );                           
+                    ";
+
+                command.ExecuteNonQuery();
+            }
+
+        }
     }
 }
 
@@ -605,6 +621,17 @@ string GetUserDateInput(bool voiceMode)
     Console.WriteLine("We need the date for the new record of your habit. Please enter the year of the date (yyyy)");
     datePieces.Add(GetUserIntInput(voiceMode, gettingYear: true).ToString());
 
+    Console.WriteLine("Please enter the month of the date of your new habit record (mm)");
+    preformattedDate = GetUserIntInput(voiceMode, gettingMonth: true);
+    if (preformattedDate < 10)
+    {
+        userIntAsString = "0" + preformattedDate.ToString();
+    }
+    else
+    {
+        userIntAsString = preformattedDate.ToString();
+    }
+
     Console.WriteLine("Please enter the DAY of the month for the date of your new habit record (dd)");
     preformattedDate = GetUserIntInput(voiceMode, gettingDay: true);
     if (preformattedDate < 10)
@@ -617,16 +644,6 @@ string GetUserDateInput(bool voiceMode)
     }
     datePieces.Add(userIntAsString);
 
-    Console.WriteLine("Please enter the month of the date of your new habit record (mm)");
-    preformattedDate = GetUserIntInput(voiceMode, gettingMonth: true);
-    if (preformattedDate < 10)
-    {
-        userIntAsString = "0" + preformattedDate.ToString();
-    }
-    else
-    {
-        userIntAsString = preformattedDate.ToString();
-    }
     datePieces.Add(userIntAsString);
     date = String.Join("-", datePieces);
 
