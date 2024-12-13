@@ -1,7 +1,8 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.CognitiveServices.Speech;
 using System.Text.RegularExpressions;
-using Microsoft.CognitiveServices.Speech.Speaker;
+using Spectre.Console;
+
 
 string? readResult;
 bool userSpeechInput = false;
@@ -30,13 +31,13 @@ void ShowMainMenu(bool voiceMode)
         currentHabits.Remove("sqlite_sequence");
 
         Console.Clear();
-        Console.WriteLine("Welcome to your personal Habit Logger.\n");
-        Console.WriteLine("Please select what you'd like to do:");
-        Console.WriteLine("\t1. Create - Create a new habit");
-        Console.WriteLine("\t2. Edit - Edit or Update an existing habit");
-        Console.WriteLine("\t3. Delete - delete all data relating to a habit.");
-        Console.WriteLine("\t4. Report - view statistics about all habits.");
-        Console.WriteLine("\nOR enter 'exit' to exit the application.");
+        AnsiConsole.MarkupLine("[bold yellow]Welcome to your personal Habit Logger.[/]\n");
+        AnsiConsole.MarkupLine("Please select what you'd like to do:\n");
+
+        Panel mainMenuPanel = ShowMenuOptionsPanel(voiceMode);
+        AnsiConsole.Write(mainMenuPanel);
+
+        AnsiConsole.MarkupLine("\nOR enter [bold yellow]exit[/] to exit the application.");
 
 
         if (voiceMode)
@@ -68,7 +69,7 @@ void ShowMainMenu(bool voiceMode)
                 break;
             case "report":
             case "4":
-                ViewHabitReport(currentHabits, voiceMode); // TODO -- method not complete, need to create still
+                ViewHabitReport(currentHabits, voiceMode); 
                 break;
             case "exit":
                 endApp = true;
@@ -77,11 +78,11 @@ void ShowMainMenu(bool voiceMode)
             default:
                 if (voiceMode)
                 {
-                    Console.WriteLine("I'm sorry, but I didn't understand that menu option. Please try again in a few seconds.");
+                    AnsiConsole.MarkupLine("I'm sorry, but I didn't understand that menu option. Please try again in a few seconds.");
                     Thread.Sleep(2500);
                 } else
                 {
-                    Console.WriteLine("I'm sorry, but I didn't understand that menu option. Press 'Enter' to try again.");
+                    AnsiConsole.MarkupLine("I'm sorry, but I didn't understand that menu option. Press [bold yellow]Enter[/] to try again.");
                     Console.ReadLine();
                 }
                 break;
@@ -95,19 +96,19 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
     string userUnitOfMeasure = "";
     bool validHabitSelected = false;
 
-    Console.WriteLine("\nHere are the current habits you are logging: \n");
-    currentHabits.ForEach(h => Console.WriteLine(h));
-    Console.WriteLine("\t--------------------\n");
+    AnsiConsole.MarkupLine("\nHere are the current habits you are logging: \n");
+    currentHabits.ForEach(h => AnsiConsole.MarkupLine($"[lightyellow3]{h}[/]"));
+    AnsiConsole.MarkupLine("\t--------------------\n");
     while (!validHabitSelected)
     {
         if (voiceMode)
         {
-            Console.WriteLine("\nPlease say the name of a new habit you would like to track.");
+            AnsiConsole.MarkupLine("\nPlease say the name of a new habit you would like to track.");
             userHabitInput = GetVoiceInput().Result;
         }
         else
         {
-            Console.WriteLine("\nPlease type the name of a new habit you would like to track.");
+            AnsiConsole.MarkupLine("\nPlease type the name of a new habit you would like to track.");
             string? readResult = Console.ReadLine();
             if (readResult != null)
             {
@@ -117,13 +118,15 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
         if (!currentHabits.Contains(userHabitInput))
         {
             validHabitSelected = true;
-            Console.WriteLine($"\nYou are choosing to create a new habit called {userHabitInput}.");
-            Console.WriteLine("What would you like to choose to be the unit of measure?");
+            AnsiConsole.MarkupLine($"\nYou are choosing to create a new habit called {userHabitInput}.");
+            AnsiConsole.MarkupLine("What would you like to choose to be the unit of measure?");
 
             if (voiceMode)
             {
-                Console.WriteLine($"\nPlease say the unit of measure you would like to use to track your {userHabitInput} habit.");
+                AnsiConsole.MarkupLine($"\nPlease say the unit of measure you would like to use to track your {userHabitInput} habit.");
                 userUnitOfMeasure = GetVoiceInput().Result;
+                userUnitOfMeasure = Regex.Replace(userUnitOfMeasure, @"[\s]", "_");
+                userUnitOfMeasure = Regex.Replace(userUnitOfMeasure, @"[^a-z0-9_]", "");
             }
             else
             {
@@ -131,19 +134,21 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
                 if (readResult != null)
                 {
                     userUnitOfMeasure = readResult.Trim().ToLower();
+                    userUnitOfMeasure = Regex.Replace(userUnitOfMeasure, @"[\s]", "_");
+                    userUnitOfMeasure = Regex.Replace(userUnitOfMeasure, @"[^a-z0-9_]", "");
                 }
             }
-            Console.WriteLine($"You are choosing {userUnitOfMeasure} to be the unit of measure.");
+            AnsiConsole.MarkupLine($"You are choosing {userUnitOfMeasure} to be the unit of measure.");
         }
         else
         {
             if (voiceMode)
             {
-                Console.WriteLine("I'm sorry, but you already have a habit with that name. Please try again.");
+                AnsiConsole.MarkupLine("I'm sorry, but you already have a habit with that name. Please try again.");
             }
             else
             {
-                Console.WriteLine("I'm sorry, but you already have a habit with that name. Please press 'Enter' to try again.");
+                AnsiConsole.MarkupLine("I'm sorry, but you already have a habit with that name. Please press [bold yellow]Enter[/] to try again.");
                 Console.ReadLine();
             }
         }
@@ -171,7 +176,7 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
 
         command.ExecuteNonQuery();
     }
-    Console.WriteLine($"New habit called {userHabitInput} with the unit of measure {userUnitOfMeasure} has been created!");
+    AnsiConsole.MarkupLine($"New habit called {userHabitInput} with the unit of measure {userUnitOfMeasure} has been created!");
 }
 
 void EditExistingHabit(List<String> currentHabits, bool voiceMode)
@@ -181,18 +186,19 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
     bool validHabitSelected = false;
     bool validAddOrEditOption = false;
 
-    Console.WriteLine("\n\tHere are the current habits you are logging: \n");
-    currentHabits.ForEach(h => Console.WriteLine(h));
-    Console.WriteLine("\t--------------------\n");
+    AnsiConsole.MarkupLine("\nHere are the current habits you are logging: \n");
+    currentHabits.ForEach(h => AnsiConsole.MarkupLine($"[lightyellow3]{h}[/]"));
+    AnsiConsole.MarkupLine("\t--------------------\n");
 
     // select which habit to modify, and whether user would prefer to add a new entry or update an existing one. 
 
     while (!validHabitSelected)
     {
-        Console.WriteLine("Please select which of the above habits you'd like to modify.");
+        AnsiConsole.MarkupLine("Please select which of the above habits you'd like to modify.");
         if (voiceMode)
         {
             userHabitInput = GetVoiceInput().Result;
+            userHabitInput = Regex.Replace(userHabitInput, @"[\s]", "_");
         }
         else
         {
@@ -200,6 +206,7 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
             if (readResult != null)
             {
                 userHabitInput = readResult;
+                userHabitInput = Regex.Replace(userHabitInput, @"[\s]", "_");
                 readResult = null;
             }
         }
@@ -209,7 +216,7 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
                
             while (!validAddOrEditOption)
             {
-                Console.WriteLine($"\nGreat! Please select whether you'd like to 'update' or 'add' or 'delete' a record. Or enter 'exit' to return to the main menu.");
+                AnsiConsole.MarkupLine($"\nGreat! Please select whether you'd like to [bold yellow]update[/] or [bold yellow]add[/] or [bold yellow]delete[/] a record. Or enter [bold yellow]exit[/] to return to the main menu.");
                 if (voiceMode)
                 {
                     userEditSelection = GetVoiceInput().Result;
@@ -227,17 +234,19 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
                 switch (userEditSelection)
                 {
                     case "update":
+                        AnsiConsole.MarkupLine($"You're choosing to update an existing record.");
                         UpdateRecord(userHabitInput, voiceMode);
                         validAddOrEditOption = true;
                         break;
 
                     case "add":
-                        Console.WriteLine($"You're choosing to add a new record.");
+                        AnsiConsole.MarkupLine($"You're choosing to add a new record.");
                         AddNewRecordToHabit(userHabitInput, voiceMode);
                         validAddOrEditOption = true;
                         break;
 
                     case "delete":
+                        AnsiConsole.MarkupLine($"You're choosing to delete a record.");
                         DeleteRecord(userHabitInput, voiceMode);
                         validAddOrEditOption = true;
                         break;
@@ -247,7 +256,7 @@ void EditExistingHabit(List<String> currentHabits, bool voiceMode)
                         break;
 
                     default:
-                        Console.WriteLine("I'm sorry, but I didn't understand that. Please try again.");
+                        AnsiConsole.MarkupLine("I'm sorry, but I didn't understand that. Please try again.");
                         break;
                 }
             }
@@ -265,31 +274,30 @@ void DeleteExistingHabit(List<String> currentHabits, bool voiceMode)
     while (!validExistingHabit)
     {
         Console.Clear();
-        Console.WriteLine("Here's a list of the current habits you are tracking.");
-        currentHabits.ForEach(x => Console.WriteLine(x));
-        Console.WriteLine("\t--------------------\n");
+        AnsiConsole.MarkupLine("Here's a list of the current habits you are tracking.");
+        currentHabits.ForEach(x => AnsiConsole.MarkupLine($"[lightyellow3]{x}[/]"));
+        AnsiConsole.MarkupLine("\t--------------------\n");
         
-        Console.WriteLine("Please enter the habit you would like to delete. Or enter 'exit' to exit back to the main screen.");
+        AnsiConsole.MarkupLine("Please enter the habit you would like to delete. Or enter [bold yellow]exit[/] to exit back to the main screen.");
 
         if (voiceMode)
         {
             userSelectedHabit = GetVoiceInput().Result;
+            userSelectedHabit = Regex.Replace(userSelectedHabit, @"[\s]", "_");
         } else
         {
             readResult = Console.ReadLine();
             if (readResult != null)
             {
                 userSelectedHabit = readResult.Trim().ToLower();
+                userSelectedHabit = Regex.Replace(userSelectedHabit, @"[\s]", "_");
                 readResult = null;
             }
         }
-        // TOOD -- feature idea: 
-        //      maybe use regex so that user can type spaces instead of underscores, and automatically replace them for the sql query? 
-        //          that'd be cool
 
         if (userSelectedHabit != null && currentHabits.Contains(userSelectedHabit))
         {
-            Console.WriteLine($"You are choosing to delete the habit {userSelectedHabit}. Please confirm if you would like to continue (y/n).");
+            AnsiConsole.MarkupLine($"You are choosing to delete the habit {userSelectedHabit}. Please confirm if you would like to continue (y/n).");
             if (voiceMode)
             {
                 userConfirmation = GetVoiceInput().Result;
@@ -327,12 +335,12 @@ void DeleteExistingHabit(List<String> currentHabits, bool voiceMode)
         bool validContinue = false;
         string continueConfirmation = "";
 
-        Console.WriteLine($"Your habit {userSelectedHabit} has been successfully deleted.");
+        AnsiConsole.MarkupLine($"Your habit {userSelectedHabit} has been successfully deleted.");
         do
         {
             if (voiceMode)
             {            
-                Console.WriteLine("Say 'continue' to continue back to the main screen.");
+                AnsiConsole.MarkupLine("Say [bold yellow]continue[/] to continue back to the main screen.");
                 continueConfirmation = GetVoiceInput().Result;
                 if (continueConfirmation.StartsWith("c"))
                 {
@@ -340,7 +348,7 @@ void DeleteExistingHabit(List<String> currentHabits, bool voiceMode)
                 }
             } else
             {
-                Console.WriteLine("Press the 'Enter' key to continue back to the main menu.");
+                AnsiConsole.MarkupLine("Press the [bold yellow]Enter[/] key to continue back to the main menu.");
                 Console.ReadLine();
                 validContinue = true;
             }
@@ -354,8 +362,10 @@ void DeleteRecord(string habit, bool voiceMode)
     habit = habit.Trim().ToLower();
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", ""); 
 
-    ReadRecordsFromHabit(habit);
-    Console.WriteLine("Please select the id (#) of the habit you would like to delete.");
+    AnsiConsole.Write(ReadRecordsFromHabit(habit));
+
+    AnsiConsole.MarkupLine("\t--------------------\n");
+    AnsiConsole.MarkupLine("Please select the id (#) of the habit you would like to delete.");
     userSelectedId = GetUserIntInput(voiceMode); 
 
     using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
@@ -372,11 +382,11 @@ void DeleteRecord(string habit, bool voiceMode)
     }
     if (voiceMode)
     {
-        Console.WriteLine($"Your record for the habit {habit}, and the id {userSelectedId} is no more. Please wait a few seconds to continue.");
+        AnsiConsole.MarkupLine($"Your record for the habit {habit}, and the id {userSelectedId} is no more. Please wait a few seconds to continue.");
         Thread.Sleep(3000);
     } else
     {
-        Console.WriteLine($"Your record for the habit {habit}, and the id {userSelectedId} is no more. Press the 'Enter' key to continue.");
+        AnsiConsole.MarkupLine($"Your record for the habit {habit}, and the id {userSelectedId} is no more. Press the [bold yellow]Enter[/] key to continue.");
         Console.ReadLine();
     }
 }
@@ -387,44 +397,70 @@ void UpdateRecord(string habit, bool voiceMode)
     int userSelectedQuantity = -1;
     string userSelectedDate = "";
     string habitUnitOfMeasure = "";
+    string confirmationMessage = "";
+    bool exitToMainMenu = false;
 
     habit = habit.Trim().ToLower();
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", "");
 
-    ReadRecordsFromHabit(habit);
-    Console.WriteLine("Please select the id (#) of the record you would like to update.");
+    habitUnitOfMeasure = ReadUnitOfMeasureFromHabit(habit);
+
+    AnsiConsole.Write(ReadRecordsFromHabit(habit));
+    AnsiConsole.MarkupLine("\t--------------------\n");
+
+    AnsiConsole.MarkupLine("Please select the id (#) of the record you would like to update.");
     userSelectedId = GetUserIntInput(voiceMode);
 
-    Console.WriteLine($"Now we'll need to get the new date you would like to update entry with id #{userSelectedId} to.");
+    AnsiConsole.MarkupLine($"Now we'll need to get the new date you would like to update entry with id #{userSelectedId} to.");
     userSelectedDate = GetUserDateInput(voiceMode);
 
-    Console.WriteLine($"Please enter the new quantity (##) you would like to record.");
+    AnsiConsole.MarkupLine($"Please enter the new quantity (##) you would like to record.");
     userSelectedQuantity = GetUserIntInput(voiceMode);
 
-    using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+    AnsiConsole.MarkupLine($"You're choosing to update the entry in the habit {habit} and id #{userSelectedId} to {userSelectedQuantity} {habitUnitOfMeasure} on {userSelectedDate}. Please confirm (y/n).");
+    if (voiceMode)
     {
-        connection.Open();
+        confirmationMessage = GetVoiceInput().Result;
+    }
+    else
+    {
+        readResult = Console.ReadLine();
+        if (readResult != null)
+        {
+            confirmationMessage = readResult.Trim().ToLower();
+        }
+    }
+    if (!confirmationMessage.Contains("y"))
+    {
+        exitToMainMenu = true;
+    }
 
-        habitUnitOfMeasure = ReadUnitOfMeasureFromHabit(connection, habit);
-        habitUnitOfMeasure = habitUnitOfMeasure.Trim().ToLower();
-        habitUnitOfMeasure = Regex.Replace(habitUnitOfMeasure, @"[^a-zA-Z0-9_]", "");
+    if (!exitToMainMenu)
+    {
+        using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+        {
+            connection.Open();
 
-        SqliteCommand command = connection.CreateCommand();
-        command.CommandText =
-            $@"
+            habitUnitOfMeasure = ReadUnitOfMeasureFromHabit(connection, habit);
+            habitUnitOfMeasure = habitUnitOfMeasure.Trim().ToLower();
+            habitUnitOfMeasure = Regex.Replace(habitUnitOfMeasure, @"[^a-zA-Z0-9_]", "");
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText =
+                $@"
                 INSERT INTO {habit} (id, {habitUnitOfMeasure}, date_only)
-                VALUES (@userSelectedId, @userSelectedQuantity, '@userSelectedDate)
+                VALUES (@userSelectedId, @userSelectedQuantity, @userSelectedDate)
                     ON CONFLICT(id) DO UPDATE SET
                     {habitUnitOfMeasure} = excluded.{habitUnitOfMeasure},
                     date_only = excluded.date_only;
             ";
-        command.Parameters.AddWithValue("@userSelectedId", userSelectedId);
-        command.Parameters.AddWithValue("@userSelectedQuantity", userSelectedQuantity);
-        command.Parameters.AddWithValue("@userSelectedDate", userSelectedDate);
+            command.Parameters.AddWithValue("@userSelectedId", userSelectedId);
+            command.Parameters.AddWithValue("@userSelectedQuantity", userSelectedQuantity);
+            command.Parameters.AddWithValue("@userSelectedDate", userSelectedDate);
 
-        command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+        } 
     }
-    Console.WriteLine($"The entry in the habit {habit} and id #{userSelectedId} has been updated to {userSelectedQuantity} {habitUnitOfMeasure} on {userSelectedDate}. ");
 }
 
 void AddNewRecordToHabit(string habit,bool voiceMode)
@@ -436,17 +472,18 @@ void AddNewRecordToHabit(string habit,bool voiceMode)
     habit = Regex.Replace(habit, @"[\s]", "_");
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", "");
 
-    ReadRecordsFromHabit(habit);
+    AnsiConsole.Write(ReadRecordsFromHabit(habit));
+    AnsiConsole.MarkupLine("\t--------------------\n");
 
-    Console.WriteLine("To add a new entry, we'll first need the date of the new entry.\n");
+    AnsiConsole.MarkupLine("To add a new entry, we'll first need the date of the new entry.\n");
     userDateInputted = GetUserDateInput(voiceMode);
 
-    Console.WriteLine("Please enter the quantity to record");
+    AnsiConsole.MarkupLine("Please enter the quantity to record");
     userQuantity = GetUserIntInput(voiceMode);
     
     // confirm or exit to main menu
     string confirmationMessage = "";
-    Console.WriteLine($"You're choosing to add a new record to the habit {habit} with the quantity {userQuantity} and date {userDateInputted} (yyyy-dd-mm). Please confirm (y/n).");
+    AnsiConsole.MarkupLine($"You're choosing to add a new record to the habit {habit} with the quantity {userQuantity} and date {userDateInputted} (yyyy-mm-dd). Please confirm (y/n).");
     if (voiceMode)
     {
         confirmationMessage = GetVoiceInput().Result;
@@ -494,6 +531,13 @@ void ViewHabitReport(List<String> currentHabits, bool voiceMode)
     string userHabitSelection = "";
     string habitUnitOfMeasure = "";
 
+    Grid grid = new();
+    grid.AddColumns(2);
+    Table statsTable = new Table();
+    statsTable.AddColumn("Statistic ");
+    statsTable.AddColumn("Value");
+    Table recordsTable;
+
     List<List<String>> specialtyStatQueries = new List<List<String>>()
     {
         new List<String> {"All-Time Number of Records: ", @" SELECT COUNT(*) FROM @userHabitSelection;" },
@@ -514,13 +558,13 @@ void ViewHabitReport(List<String> currentHabits, bool voiceMode)
     };
 
     Console.Clear();
-    Console.WriteLine("\n\tHere are the current habits you can view a report for: \n");
-    currentHabits.ForEach(h => Console.WriteLine(h));
-    Console.WriteLine("\t--------------------\n");
+    AnsiConsole.MarkupLine("\n\tHere are the current habits you can view a report for: \n");
+    currentHabits.ForEach(h => AnsiConsole.MarkupLine($"[lightyellow3]{h}[/]"));
+    AnsiConsole.MarkupLine("\t--------------------\n");
 
     while (!validHabitSelected)
     {
-        Console.WriteLine("Please select the habit you would like to view statistics for.");
+        AnsiConsole.MarkupLine("Please select the habit you would like to view statistics for.");
         if (voiceMode)
         {
             userHabitSelection = GetVoiceInput().Result;
@@ -542,9 +586,11 @@ void ViewHabitReport(List<String> currentHabits, bool voiceMode)
             validHabitSelected = true;
         } else
         {
-            Console.WriteLine("Sorry, but that didn't look like a habit you are currently tracking. Please try again.");
+            AnsiConsole.MarkupLine("Sorry, but that didn't look like a habit you are currently tracking. Please try again.");
         }
     }
+
+    recordsTable = ReadRecordsFromHabit(userHabitSelection);
 
     using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
     {
@@ -569,20 +615,19 @@ void ViewHabitReport(List<String> currentHabits, bool voiceMode)
             var executed = command.ExecuteScalar();
             if (executed != null)
             {
-                Console.Write(specialtyQuery[0]);
-                Console.WriteLine(executed.ToString());
+                statsTable.AddRow(specialtyQuery[0], executed.ToString());
             } else
             {
-                Console.WriteLine(specialtyQuery[0], "Unknown.");
+                statsTable.AddRow(specialtyQuery[0], "Uknown.");
             }
         }
-        // TODO -- challenge to think about: potentially adding a feature to return longest streak of consecutive entries
-        // maybe?
     }
+    grid.AddRow(recordsTable, statsTable);
+    AnsiConsole.Write(grid);
 
     if (voiceMode)
     {
-        Console.WriteLine("\nSay 'Continue' to continue back to the main menu.");
+        AnsiConsole.MarkupLine("\nSay [bold yellow]Continue[/] to continue back to the main menu.");
         while (!backToMainMenu)
         {
             userContinue = GetVoiceInput().Result;
@@ -593,7 +638,7 @@ void ViewHabitReport(List<String> currentHabits, bool voiceMode)
         }
     } else
     {
-        Console.WriteLine("\nPress the 'Enter' key to return back to the main menu.");
+        AnsiConsole.MarkupLine("\nPress the [bold yellow]Enter[/] key to return back to the main menu.");
         Console.ReadLine();
     }
 }
@@ -691,12 +736,15 @@ string ReadUnitOfMeasureFromHabit(SqliteConnection connection, string habit)
     return "";
 }
 
-void ReadRecordsFromHabit(string habit)
+Table ReadRecordsFromHabit(string habit)
 {
+    Table table = new();
+    table.Border(TableBorder.Rounded);
+
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", ""); // remove non-alphanumeric to reduce risk of sql injection
     string commandText = $"SELECT * FROM {habit};"; // cannot parameterize table names, must format command string manually
 
-    Console.WriteLine($"Here are the existing records from the habit {habit}: \n");
+    AnsiConsole.MarkupLine($"[yellow]\nHere are the existing records from the habit {habit}:[/]");
 
     using (var connection = new SqliteConnection("DataSource=Habits.db"))
     {
@@ -708,16 +756,16 @@ void ReadRecordsFromHabit(string habit)
         {
             for (int i = 0; i < reader.FieldCount; i++)
             {
-                Console.Write($"{reader.GetName(i)}\t");
+                table.AddColumn(reader.GetName(i));
             }
-            Console.WriteLine();
+            AnsiConsole.MarkupLine("\n");
             while (reader.Read())
             {         
-                Console.WriteLine($"{reader.GetString(0)}\t{reader.GetString(1)}\t{reader.GetString(2)}");
+                table.AddRow(reader.GetString(0),reader.GetString(1), reader.GetString(2));
             }
         }
     }
-    Console.WriteLine("\t--------------------\n");
+    return table;
 }
 
 string GetUserDateInput(bool voiceMode)
@@ -727,10 +775,10 @@ string GetUserDateInput(bool voiceMode)
     string date = "";
     string userIntAsString = "";
 
-    Console.WriteLine("We need the date for the new record of your habit. Please enter the year of the date (yyyy)");
+    AnsiConsole.MarkupLine("We need the date for the new record of your habit. Please enter the year of the date (yyyy)");
     datePieces.Add(GetUserIntInput(voiceMode, gettingYear: true).ToString());
 
-    Console.WriteLine("Please enter the month of the date of your new habit record (mm)");
+    AnsiConsole.MarkupLine("Please enter the month of the date of your new habit record (mm)");
     preformattedDate = GetUserIntInput(voiceMode, gettingMonth: true);
     if (preformattedDate < 10)
     {
@@ -741,7 +789,7 @@ string GetUserDateInput(bool voiceMode)
         userIntAsString = preformattedDate.ToString();
     }
 
-    Console.WriteLine("Please enter the DAY of the month for the date of your new habit record (dd)");
+    AnsiConsole.MarkupLine("Please enter the DAY of the month for the date of your new habit record (dd)");
     preformattedDate = GetUserIntInput(voiceMode, gettingDay: true);
     if (preformattedDate < 10)
     {
@@ -787,18 +835,18 @@ int GetUserIntInput(bool voiceMode, bool gettingYear=false, bool gettingDay=fals
             {
                 if (realNumber <= 0)
                 {
-                    Console.WriteLine("Dates can't be negative or zero. Please enter a positive number.");
+                    AnsiConsole.MarkupLine("Dates can't be negative or zero. Please enter a positive number.");
                 }
 
                 if (gettingYear && (realNumber >3000 || realNumber <1000))
                 {
-                    Console.WriteLine("Wow! You must live in another age. We can only do years between 1000 and 3000. Please try again.");
+                    AnsiConsole.MarkupLine("Wow! You must live in another age. We can only do years between 1000 and 3000. Please try again.");
                 } else if (gettingDay && realNumber > 31)
                 {
-                    Console.WriteLine("Woah! I don't know which cool time system you're on, but our months only have days between 1 and 31. Please try again.");
+                    AnsiConsole.MarkupLine("Woah! I don't know which cool time system you're on, but our months only have days between 1 and 31. Please try again.");
                 } else if (gettingMonth && realNumber >12)
                 {
-                    Console.WriteLine("Woah! I don't know what cool calendar you're on, but ours only has months between 1 and 12.");
+                    AnsiConsole.MarkupLine("Woah! I don't know what cool calendar you're on, but ours only has months between 1 and 12.");
                 } else
                 {
                     validNumber = true;
@@ -809,7 +857,7 @@ int GetUserIntInput(bool voiceMode, bool gettingYear=false, bool gettingDay=fals
             }
         } else
         {
-            Console.WriteLine("I'm sorry, but I didn't understand that number. Please try again.");
+            AnsiConsole.MarkupLine("I'm sorry, but I didn't understand that number. Please try again.");
         }
     } while (!validNumber);
 
@@ -832,7 +880,7 @@ async Task<String> GetVoiceInput()
         if (result.Reason == ResultReason.RecognizedSpeech)
         {
             string userVoiceInput = result.Text;
-            Console.WriteLine("  Speech Input Recognized: {userVoiceInput}");
+            AnsiConsole.MarkupLine("  Speech Input Recognized: {userVoiceInput}");
 
             userVoiceInput = userVoiceInput.Trim().ToLower();
             Regex.Replace(userVoiceInput, @"[^a-z0-9\s]", "");
@@ -841,16 +889,34 @@ async Task<String> GetVoiceInput()
 
         } else if (result.Reason == ResultReason.Canceled)
         {
-            Console.WriteLine($"An error occured during speech recognition: \n\t{CancellationDetails.FromResult(result)}");
+            AnsiConsole.MarkupLine($"An error occured during speech recognition: \n\t{CancellationDetails.FromResult(result)}");
         } else
         {
             if (repeatCounter <1)
             {
-                Console.WriteLine("I'm sorry, but I didn't understand what you said. Please try again.");
+                AnsiConsole.MarkupLine("I'm sorry, but I didn't understand what you said. Please try again.");
             }
             repeatCounter++;
         }
     } while (result.Reason != ResultReason.RecognizedSpeech);
 
     return "UnexpectedVoiceResult Error";
+}
+
+Panel ShowMenuOptionsPanel(bool voiceMode)
+{
+    Grid grid = new Grid();
+    grid.AddColumn();
+
+    grid.AddRow("[aqua]Create[/] - Create a new habit");
+    grid.AddRow("[aqua]Edit[/] - Edit or Update an existing habit");
+    grid.AddRow("[aqua]Delete[/] - delete all data relating to a habit.");
+    grid.AddRow("[aqua]Report[/] - view statistics about all habits.");
+
+    return new Panel(grid)
+    {
+        Header = new PanelHeader("[yellow]Choose an Option:[/]"),
+        Border = BoxBorder.Rounded,
+        Padding = new Padding(1)
+    };
 }
