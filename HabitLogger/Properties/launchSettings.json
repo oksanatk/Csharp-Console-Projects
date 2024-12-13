@@ -2,6 +2,7 @@
   "profiles": {
     "HabitLogger": {
       "commandName": "Project",
+      "commandLineArgs": "--voice-input",
       "workingDirectory": "C:\\Users\\O\\source\\repos\\Learning Projects\\HabitLogger",
       "sqlDebugging": true
     }

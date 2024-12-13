@@ -176,7 +176,29 @@ void CreateNewHabit(List<String> currentHabits, bool voiceMode)
 
         command.ExecuteNonQuery();
     }
-    AnsiConsole.MarkupLine($"New habit called {userHabitInput} with the unit of measure {userUnitOfMeasure} has been created!");
+
+    AnsiConsole.MarkupLine($"\nNew habit called [bold yellow]{userHabitInput}[/] with the unit of measure [bold yellow]{userUnitOfMeasure}[/] has been created!");
+
+    bool validContinue = false;
+    string continueConfirmation = "";
+    do
+    {
+        if (voiceMode)
+        {
+            AnsiConsole.MarkupLine("Say [bold yellow]continue[/] to continue back to the main screen.");
+            continueConfirmation = GetVoiceInput().Result;
+            if (continueConfirmation.StartsWith("c"))
+            {
+                validContinue = true;
+            }
+        }
+        else
+        {
+            AnsiConsole.MarkupLine("Press the [bold yellow]Enter[/] key to continue back to the main menu.");
+            Console.ReadLine();
+            validContinue = true;
+        }
+    } while (!validContinue);
 }
 
 void EditExistingHabit(List<String> currentHabits, bool voiceMode)
@@ -335,7 +357,7 @@ void DeleteExistingHabit(List<String> currentHabits, bool voiceMode)
         bool validContinue = false;
         string continueConfirmation = "";
 
-        AnsiConsole.MarkupLine($"Your habit {userSelectedHabit} has been successfully deleted.");
+        AnsiConsole.MarkupLine($"\nYour habit {userSelectedHabit} has been successfully deleted.");
         do
         {
             if (voiceMode)
@@ -382,11 +404,11 @@ void DeleteRecord(string habit, bool voiceMode)
     }
     if (voiceMode)
     {
-        AnsiConsole.MarkupLine($"Your record for the habit {habit}, and the id {userSelectedId} is no more. Please wait a few seconds to continue.");
+        AnsiConsole.MarkupLine($"Your record for the habit [bold yellow]{habit}[/], and the id [bold yellow]{userSelectedId}[/] is no more. Please wait a few seconds to continue.");
         Thread.Sleep(3000);
     } else
     {
-        AnsiConsole.MarkupLine($"Your record for the habit {habit}, and the id {userSelectedId} is no more. Press the [bold yellow]Enter[/] key to continue.");
+        AnsiConsole.MarkupLine($"Your record for the habit [bold yellow]{habit}[/], and the id [bold yellow]{userSelectedId}[/] is no more. Press the [bold yellow]Enter[/] key to continue.");
         Console.ReadLine();
     }
 }
@@ -411,13 +433,13 @@ void UpdateRecord(string habit, bool voiceMode)
     AnsiConsole.MarkupLine("Please select the id (#) of the record you would like to update.");
     userSelectedId = GetUserIntInput(voiceMode);
 
-    AnsiConsole.MarkupLine($"Now we'll need to get the new date you would like to update entry with id #{userSelectedId} to.");
+    AnsiConsole.MarkupLine($"\nNow we'll need to get the new date you would like to update entry with id #{userSelectedId} to.");
     userSelectedDate = GetUserDateInput(voiceMode);
 
     AnsiConsole.MarkupLine($"Please enter the new quantity (##) you would like to record.");
     userSelectedQuantity = GetUserIntInput(voiceMode);
 
-    AnsiConsole.MarkupLine($"You're choosing to update the entry in the habit [yellow]{habit}[/] and id #[yellow]{userSelectedId}[/] to [yellow]{userSelectedQuantity} {habitUnitOfMeasure}[/] on [yellow]{userSelectedDate}[/]. Please confirm (y/n).");
+    AnsiConsole.MarkupLine($"You're choosing to update the entry in the habit [bold yellow]{habit}[/] and [bold yellow] id#{userSelectedId}[/] to [bold yellow]{userSelectedQuantity} {habitUnitOfMeasure}[/] on [bold yellow]{userSelectedDate}[/]. Please confirm (y/n).");
     if (voiceMode)
     {
         confirmationMessage = GetVoiceInput().Result;
@@ -483,7 +505,7 @@ void AddNewRecordToHabit(string habit,bool voiceMode)
     
     // confirm or exit to main menu
     string confirmationMessage = "";
-    AnsiConsole.MarkupLine($"You're choosing to add a new record to the habit {habit} with the quantity {userQuantity} and date {userDateInputted} (yyyy-mm-dd). Please confirm (y/n).");
+    AnsiConsole.MarkupLine($"You're choosing to add a new record to the habit [bold yellow]{habit}[/] with the quantity [bold yellow]{userQuantity}[/] and date [bold yellow]{userDateInputted}[/] (yyyy-mm-dd). Please confirm (y/n).");
     if (voiceMode)
     {
         confirmationMessage = GetVoiceInput().Result;
@@ -908,10 +930,10 @@ async Task<String> GetVoiceInput()
         if (result.Reason == ResultReason.RecognizedSpeech)
         {
             string userVoiceInput = result.Text;
-            AnsiConsole.MarkupLine("  Speech Input Recognized: {userVoiceInput}");
+            AnsiConsole.MarkupLine($"[bold yellow]Speech Input Recognized:[/] {userVoiceInput}");
 
             userVoiceInput = userVoiceInput.Trim().ToLower();
-            Regex.Replace(userVoiceInput, @"[^a-z0-9\s]", "");
+            userVoiceInput = Regex.Replace(userVoiceInput, @"[^a-z0-9\s]", "");
 
             return userVoiceInput;
 
