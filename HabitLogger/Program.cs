@@ -403,7 +403,7 @@ void UpdateRecord(string habit, bool voiceMode)
     habit = habit.Trim().ToLower();
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", "");
 
-    habitUnitOfMeasure = ReadUnitOfMeasureFromHabit(habit);
+    habitUnitOfMeasure = ReadUnitOfMeasureWithoutConnection(habit);
 
     AnsiConsole.Write(ReadRecordsFromHabit(habit));
     AnsiConsole.MarkupLine("\t--------------------\n");
@@ -417,7 +417,7 @@ void UpdateRecord(string habit, bool voiceMode)
     AnsiConsole.MarkupLine($"Please enter the new quantity (##) you would like to record.");
     userSelectedQuantity = GetUserIntInput(voiceMode);
 
-    AnsiConsole.MarkupLine($"You're choosing to update the entry in the habit {habit} and id #{userSelectedId} to {userSelectedQuantity} {habitUnitOfMeasure} on {userSelectedDate}. Please confirm (y/n).");
+    AnsiConsole.MarkupLine($"You're choosing to update the entry in the habit [yellow]{habit}[/] and id #[yellow]{userSelectedId}[/] to [yellow]{userSelectedQuantity} {habitUnitOfMeasure}[/] on [yellow]{userSelectedDate}[/]. Please confirm (y/n).");
     if (voiceMode)
     {
         confirmationMessage = GetVoiceInput().Result;
@@ -534,8 +534,8 @@ void ViewHabitReport(List<String> currentHabits, bool voiceMode)
     Grid grid = new();
     grid.AddColumns(2);
     Table statsTable = new Table();
-    statsTable.AddColumn("Statistic ");
-    statsTable.AddColumn("Value");
+    statsTable.AddColumn("[lightyellow3]Statistic [/]");
+    statsTable.AddColumn("[lightyellow3]Value [/]");
     Table recordsTable;
 
     List<List<String>> specialtyStatQueries = new List<List<String>>()
@@ -652,13 +652,13 @@ void AutoPopulateSampleData()
 
         command.CommandText =
             $@"
-                CREATE TABLE IF NOT EXISTS sample_habit1 (
+                CREATE TABLE IF NOT EXISTS sample_habit_1 (
                  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                  sample_measure INTEGER NOT NULL,
                  date_only TEXT NOT NULL
                 );
 
-                CREATE TABLE IF NOT EXISTS sample_habit2 (
+                CREATE TABLE IF NOT EXISTS sample_habit_2 (
                  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                  sample_measure INTEGER NOT NULL,
                  date_only TEXT NOT NULL
@@ -666,7 +666,7 @@ void AutoPopulateSampleData()
             ";
         command.ExecuteNonQuery();
 
-        foreach (string sampleHabit in new string[] { "sample_habit1","sample_habit2" })
+        foreach (string sampleHabit in new string[] { "sample_habit_1","sample_habit_2" })
         {
             for (int i = 0; i<20; i++)
             {
@@ -736,6 +736,34 @@ string ReadUnitOfMeasureFromHabit(SqliteConnection connection, string habit)
     return "";
 }
 
+string ReadUnitOfMeasureWithoutConnection(string habit)
+    // how to overload method without class declaration?
+{
+    string? unitOfMeasureName = "";
+    using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))
+    {
+        connection.Open();
+        SqliteCommand validateUnitOfMeasureName = connection.CreateCommand();
+        validateUnitOfMeasureName.CommandText = $"PRAGMA table_info({habit});";
+
+        using (SqliteDataReader reader = validateUnitOfMeasureName.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                if (reader[0].ToString() == "1" && reader[1] != null)
+                {
+                    unitOfMeasureName = reader[1].ToString();
+                }
+            }
+        }
+        if (unitOfMeasureName != null)
+        {
+            return unitOfMeasureName;
+        }
+    }
+    return "";
+}
+
 Table ReadRecordsFromHabit(string habit)
 {
     Table table = new();
@@ -744,7 +772,7 @@ Table ReadRecordsFromHabit(string habit)
     habit = Regex.Replace(habit, @"[^a-zA-Z0-9_]", ""); // remove non-alphanumeric to reduce risk of sql injection
     string commandText = $"SELECT * FROM {habit};"; // cannot parameterize table names, must format command string manually
 
-    AnsiConsole.MarkupLine($"[yellow]\nHere are the existing records from the habit {habit}:[/]");
+    AnsiConsole.MarkupLine($"\nHere are the existing records from the habit {habit}:");
 
     using (var connection = new SqliteConnection("DataSource=Habits.db"))
     {
@@ -756,7 +784,7 @@ Table ReadRecordsFromHabit(string habit)
         {
             for (int i = 0; i < reader.FieldCount; i++)
             {
-                table.AddColumn(reader.GetName(i));
+                table.AddColumn($"[lightyellow3]{reader.GetName(i)}[/]");
             }
             AnsiConsole.MarkupLine("\n");
             while (reader.Read())
