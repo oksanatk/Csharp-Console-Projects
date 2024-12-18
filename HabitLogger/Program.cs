@@ -1,7 +1,7 @@
 ﻿namespace HabitLogger;
+
 internal class Program 
 { 
-
     static bool userSpeechInput = false;
     static void Main(string[] args)
     {
@@ -12,7 +12,6 @@ internal class Program
         }
 
         if (args.Contains("--voice-input")) { userSpeechInput = true; }
-
         Interface.ShowMainMenu(userSpeechInput);
     }
 }

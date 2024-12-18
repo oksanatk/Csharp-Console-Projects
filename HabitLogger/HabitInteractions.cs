@@ -3,6 +3,7 @@ using Spectre.Console;
 using System.Text.RegularExpressions;
 
 namespace HabitLogger;
+
 internal class HabitInteractions
 {
     static string? readResult;
@@ -137,8 +138,6 @@ internal class HabitInteractions
         currentHabits.ForEach(h => AnsiConsole.MarkupLine($"[lightyellow3]{h}[/]"));
         AnsiConsole.MarkupLine("\t--------------------\n");
 
-        // select which habit to modify, and whether user would prefer to add a new entry or update an existing one. 
-
         while (!validHabitSelected)
         {
             AnsiConsole.MarkupLine("Please select which of the above habits you'd like to modify.");
@@ -226,7 +225,6 @@ internal class HabitInteractions
             AnsiConsole.MarkupLine("\t--------------------\n");
 
             AnsiConsole.MarkupLine("Please enter the habit you would like to delete. Or enter [bold yellow]exit[/] to exit back to the main screen.");
-
             if (voiceMode)
             {
                 userSelectedHabit = Interface.GetVoiceInput().Result;
@@ -432,7 +430,6 @@ internal class HabitInteractions
         AnsiConsole.MarkupLine("Please enter the quantity to record");
         userQuantity = Interface.GetUserIntInput(voiceMode);
 
-        // confirm or exit to main menu
         string confirmationMessage = "";
         AnsiConsole.MarkupLine($"You're choosing to add a new record to the habit [bold yellow]{habit}[/] with the quantity [bold yellow]{userQuantity}[/] and date [bold yellow]{userDateInputted}[/] (yyyy-mm-dd). Please confirm (y/n).");
         if (voiceMode)
@@ -491,23 +488,23 @@ internal class HabitInteractions
         Table recordsTable;
 
         List<List<String>> specialtyStatQueries = new List<List<String>>()
-    {
-        new List<String> {"All-Time Number of Records: ", @" SELECT COUNT(*) FROM @userHabitSelection;" },
+            {
+                new List<String> {"All-Time Number of Records: ", @" SELECT COUNT(*) FROM @userHabitSelection;" },
 
-        new List<String> {"Number of Records in Past Year (Past 365 days): ", @" SELECT COUNT(*) FROM @userHabitSelection WHERE date_only >= date('now', '-365 days');" },
+                new List<String> {"Number of Records in Past Year (Past 365 days): ", @" SELECT COUNT(*) FROM @userHabitSelection WHERE date_only >= date('now', '-365 days');" },
 
-        new List<String> {"Total @habitUnitOfMeasure Recorded All-Time: ", @" SELECT SUM(@habitUnitOfMeasure) FROM @userHabitSelection;" },
+                new List<String> {"Total @habitUnitOfMeasure Recorded All-Time: ", @" SELECT SUM(@habitUnitOfMeasure) FROM @userHabitSelection;" },
 
-        new List<String> {"Total @habitUnitOfMeasure for Past Year: ", @" SELECT SUM(@habitUnitOfMeasure) FROM @userHabitSelection WHERE date_only >= date('now', '-365 days');" },
+                new List<String> {"Total @habitUnitOfMeasure for Past Year: ", @" SELECT SUM(@habitUnitOfMeasure) FROM @userHabitSelection WHERE date_only >= date('now', '-365 days');" },
 
-        new List<String> {"Average @habitUnitOfMeasure All-Time: ", @" SELECT AVG(@habitUnitOfMeasure) FROM @userHabitSelection;" },
+                new List<String> {"Average @habitUnitOfMeasure All-Time: ", @" SELECT AVG(@habitUnitOfMeasure) FROM @userHabitSelection;" },
 
-        new List<String> {"Average @habitUnitOfMeasure for Past Year: ", @" SELECT AVG(@habitUnitOfMeasure) FROM @userHabitSelection WHERE date_only >= date('now', '-365 days');" },
+                new List<String> {"Average @habitUnitOfMeasure for Past Year: ", @" SELECT AVG(@habitUnitOfMeasure) FROM @userHabitSelection WHERE date_only >= date('now', '-365 days');" },
 
-        new List<String> {"Highest Number of @habitUnitOfMeasure Ever: ", @" SELECT MAX(@habitUnitOfMeasure) FROM @userHabitSelection;" },
+                new List<String> {"Highest Number of @habitUnitOfMeasure Ever: ", @" SELECT MAX(@habitUnitOfMeasure) FROM @userHabitSelection;" },
 
-        new List<String> {"Lowest Number of @habitUnitOfMeasure Ever: ", @" SELECT MIN(@habitUnitOfMeasure) FROM @userHabitSelection;" }
-    };
+                new List<String> {"Lowest Number of @habitUnitOfMeasure Ever: ", @" SELECT MIN(@habitUnitOfMeasure) FROM @userHabitSelection;" }
+            };
 
         Console.Clear();
         AnsiConsole.MarkupLine("\n\tHere are the current habits you can view a report for: \n");
@@ -531,7 +528,6 @@ internal class HabitInteractions
             }
             userHabitSelection = Regex.Replace(userHabitSelection, @"[\s]", "_");
             userHabitSelection = Regex.Replace(userHabitSelection, @"[^a-zA-Z0-9_]", "");
-
 
             if (currentHabits.Contains(userHabitSelection))
             {
@@ -561,7 +557,6 @@ internal class HabitInteractions
             }
 
             SqliteCommand command = connection.CreateCommand();
-
             foreach (List<String> specialtyQuery in specialtyStatQueries)
             {
                 command.CommandText = specialtyQuery[1];
@@ -634,7 +629,6 @@ internal class HabitInteractions
                             date('2022-01-01', '+' || abs(random() % 1085) || ' days')
                         );                           
                     ";
-
                     command.ExecuteNonQuery();
                 }
             }
@@ -692,7 +686,6 @@ internal class HabitInteractions
     }
 
     internal static string ReadUnitOfMeasureFromHabit(string habit)
-    // how to overload method without class declaration?
     {
         string? unitOfMeasureName = "";
         using (SqliteConnection connection = new SqliteConnection("DataSource=Habits.db"))

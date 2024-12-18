@@ -3,6 +3,7 @@ using Spectre.Console;
 using System.Text.RegularExpressions;
 
 namespace HabitLogger;
+
 internal class Interface
 {
     internal static string? readResult;
@@ -210,7 +211,6 @@ internal class Interface
                 AnsiConsole.MarkupLine("I'm sorry, but I didn't understand that number. Please try again.");
             }
         } while (!validNumber);
-
         return realNumber;
     }
 
@@ -236,7 +236,6 @@ internal class Interface
                 userVoiceInput = Regex.Replace(userVoiceInput, @"[^a-z0-9\s]", "");
 
                 return userVoiceInput;
-
             }
             else if (result.Reason == ResultReason.Canceled)
             {
@@ -272,5 +271,4 @@ internal class Interface
             Padding = new Padding(1)
         };
     }
-
 }
