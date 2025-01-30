@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TCSA.MathGame.Maui.PreviousGamesPage"
+             BackgroundImageSource="bg.jpg">
+    
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="20,10,20,5">
+            <Grid RowDefinitions="50"
+                  ColumnDefinitions="*,*,*,*">
+                <Label Grid.Column="0" Text="Date" FontSize="28"/>
+                <Label Grid.Column="1" Text="Type" FontSize="28"/>
+                <Label Grid.Column="2" Text="Score" FontSize="28"/>
+            </Grid>
+            
+            <CollectionView
+                x:Name="gamesList">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid RowDefinitions="*,50"
+                              ColumnDefinitions="*,*,*,*">
+
+                            <Label Grid.Column="0" Text="{Binding DatePlayed, StringFormat='{0:d}'}" FontSize="28"/>
+                            <Label Grid.Column="1" Text="{Binding Type}" FontSize="28"/>
+                            <Label Grid.Column="2" Text="{Binding Score}" FontSize="28"/>
+                            <ImageButton
+                                Source="trash.png"
+                                Grid.Column="3"
+                                Clicked="OnDelete"
+                                BindingContext="{Binding Id}"
+                                MaximumHeightRequest="40"
+                                MaximumWidthRequest="70"
+                                />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

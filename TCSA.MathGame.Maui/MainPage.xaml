@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TCSA.MathGame.Maui.MainPage"
+             BackgroundImageSource="bg.jpg">
+
+    <ContentView>
+        <VerticalStackLayout
+            Padding="25"
+            Spacing="15">
+
+            <Label
+                Text="This is the math game!"
+                FontSize="50"
+                HorizontalOptions="Center"/>
+            <Label
+                Text="Choose the game below:"
+                FontSize="50"
+                HorizontalOptions="Center"/>
+
+            <Grid RowDefinitions=" *, 150"
+                    ColumnDefinitions="*,*,*,*">
+
+                <Button Grid.Column="0"
+                        Text="+"
+                        Clicked="OnGameChosen"
+                        MaximumWidthRequest="100"
+                        FontSize="60"/>
+                <Button Grid.Column="1"
+                        Text="-"
+                        Clicked="OnGameChosen"
+                        MaximumWidthRequest="100"
+                        FontSize="60"/>
+                
+                <Button Grid.Column="2"
+                        Text="x"
+                        Clicked="OnGameChosen"
+                        MaximumWidthRequest="100"
+                        FontSize="60"/>
+                <Button Grid.Column="3"
+                        Text="÷"
+                        Clicked="OnGameChosen"
+                        MaximumWidthRequest="100"
+                        FontSize="60"/>
+                
+                <Button Grid.Row="1"
+                        Grid.ColumnSpan="4"
+                        BackgroundColor="ForestGreen"
+                        Text="View Previous Games"
+                        Clicked="OnPreviousGamesChosen"
+                        FontSize="28"
+                        MaximumWidthRequest="300"
+                        MaximumHeightRequest="70"/>                
+            </Grid>
+
+
+
+        </VerticalStackLayout>
+    </ContentView>
+
+</ContentPage>
